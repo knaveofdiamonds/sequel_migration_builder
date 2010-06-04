@@ -46,7 +46,7 @@ module Sequel
       private
 
       def extract_size(column)
-        match = column.last[:db_type] =~ /\((\d+)\)/
+        match = column.last[:db_type].match(/\((\d+)\)/)
         match[1].to_i if match[1]
       end
 
