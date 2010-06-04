@@ -25,4 +25,12 @@ describe Sequel::Schema::DbColumn do
   it "should return a #change_default statement" do
     @column.change_default_statement.should == "set_column_default :foo, 10"
   end
+
+  it "should be diffable with another DbColumn" do
+    other = Sequel::Schema::DbColumn.new(:foo, :smallint, false, 10, true, 10, nil)
+    @column.diff(other).should == [:column_type]
+
+    other = Sequel::Schema::DbColumn.new(:foo, :integer, true, 11, true, 10, nil)
+    @column.diff(other).should == [:null, :default]
+  end
 end

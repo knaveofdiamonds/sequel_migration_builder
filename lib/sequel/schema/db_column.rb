@@ -2,7 +2,7 @@ module Sequel
   module Schema
     DbColumn = Struct.new(:name, :column_type, :null, :default, :unsigned, :size, :elements)
 
-    # A Column in a database table.
+    # A column in a database table.
     #
     # Responsible for generating all migration method calls used by
     # migration operations.
@@ -41,7 +41,16 @@ module Sequel
       def change_default_statement
         "set_column_default #{name.inspect}, #{default.inspect}"
       end
-      
+
+      # Returns an Array of attributes that are different between this
+      # and another column.
+      #
+      def diff(other)
+        result = []
+        each_pair {|key, value| result << key if other[key] != value }
+        result
+      end
+
       private
 
       def add_options
@@ -49,7 +58,7 @@ module Sequel
 
         opts << ":default => #{default.inspect}"
         opts << ":unsigned => #{unsigned}"
-        opts << ":size => #{size}"                 if size
+        opts << ":size => #{size.inspect}"         if size
         opts << ":elements => #{elements.inspect}" if elements
 
         opts.join(", ") unless opts.empty?
@@ -61,7 +70,7 @@ module Sequel
         opts << ":null => false"                   if null == false
         opts << ":default => #{default.inspect}"   if default
         opts << ":unsigned => true"                if unsigned
-        opts << ":size => #{size}"                 if size
+        opts << ":size => #{size.inspect}"         if size
         opts << ":elements => #{elements.inspect}" if elements
 
         opts.join(", ") unless opts.empty?
