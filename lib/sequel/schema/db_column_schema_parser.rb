@@ -1,27 +1,24 @@
 module Sequel
   module Schema
-
     # Parses an array of column definitions, as returned by
     # DB.schema(:table).
     #
-    class DbColumnSchemaParser
+    class DbColumnBuilder
 
       # Extracts an array of hashes representing the columns in the
       # table, given an Array of Arrays returned by DB.schema(:table).
       #
-      def parse(db_schema)
+      def parse_sequel_schema(db_schema)
         db_schema.map do |column|
-          hsh = {
-            :name        => column.first,
-            :default     => column.last[:ruby_default],
-            :null        => column.last[:allow_null],
-            :column_type => parse_type(column.last[:db_type]),
-            :unsigned    => column.last[:db_type].include?(" unsigned")
-          }
-          hsh[:size] = extract_size(column) if column.last[:type] == :string
-          hsh[:elements] = extract_enum_elements(column) if hsh[:column_type] == :enum
-
-          hsh
+          c = DbColumn.new
+          c.name        = column.first
+          c.default     = column.last[:ruby_default]
+          c.null        = column.last[:allow_null]
+          c.column_type = parse_type(column.last[:db_type])
+          c.unsigned    = column.last[:db_type].include?(" unsigned")
+          c.size        = extract_size(column) if column.last[:type] == :string
+          c.elements    = extract_enum_elements(column) if c.column_type == :enum
+          c
         end
       end
 
