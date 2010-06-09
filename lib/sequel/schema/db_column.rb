@@ -8,34 +8,41 @@ module Sequel
     # migration operations.
     #
     class DbColumn
-      # Returns a Sequel Migration statement to define a column in a
+      # Builds a DbColumn from a Hash of attribute values. Keys 
+      # can be strings or symbols.
+      #
+      def self.build_from_hash(attrs={})
+        new *members.map {|key| attrs[key] || attrs[key.to_sym] }
+      end
+
+      # Returns a Sequel migration statement to define a column in a
       # create_table block.
       #
       def define_statement
         ["#{column_type} #{name.inspect}", options].compact.join(", ")
       end
 
-      # Returns a Sequel Migration statement to remove the column.
+      # Returns a Sequel migration statement to remove the column.
       #
       def drop_statement
         "drop_column #{name.inspect}"
       end
 
-      # Returns a Sequel Migration statement to add the column to a
+      # Returns a Sequel migration statement to add the column to a
       # table in an alter_table block.
       #
       def add_statement
         ["add_column #{name.inspect}", column_type.inspect, add_options].compact.join(", ")
       end
       
-      # Returns a Sequel Migration statement to change whether a column
+      # Returns a Sequel migration statement to change whether a column
       # allows null values.
       #
       def change_null_statement
         "set_column_allow_null #{name.inspect}, #{null.inspect}"
       end
 
-      # Returns a Sequel Migration statement to change a column's default
+      # Returns a Sequel migration statement to change a column's default
       # value.
       # 
       def change_default_statement
@@ -67,7 +74,7 @@ module Sequel
       def options
         opts = []
 
-        opts << ":null => false"                   if null == false
+        opts << ":null => false"                   unless null == true
         opts << ":default => #{default.inspect}"   if default
         opts << ":unsigned => true"                if unsigned
         opts << ":size => #{size.inspect}"         if size

@@ -33,4 +33,11 @@ describe Sequel::Schema::DbColumn do
     other = Sequel::Schema::DbColumn.new(:foo, :integer, true, 11, true, 10, nil)
     @column.diff(other).should == [:null, :default]
   end
+
+  it "should be buildable from a Hash" do
+    Sequel::Schema::DbColumn.build_from_hash(:name => "foo", 
+                                       :column_type => "integer").column_type.should == "integer"
+    Sequel::Schema::DbColumn.build_from_hash('name' => "foo", 
+                                       'column_type' => "integer").name.should == "foo"
+  end
 end
