@@ -36,13 +36,15 @@ module Sequel
         i += 1
         table = tables[table_name]
         indent do
-          add_line "create_table #{table_name.inspect} do"
-          indent do
-            table[:columns].each do |column|
-              add_line Schema::DbColumn.build_from_hash(column).define_statement
+          unless @db.table_exists?(table_name)
+            add_line "create_table #{table_name.inspect} do"
+            indent do
+              table[:columns].each do |column|
+                add_line Schema::DbColumn.build_from_hash(column).define_statement
+              end
             end
+            add_line "end"
           end
-          add_line "end"
           add_blank_line unless i == tables.size
         end
       end        
@@ -53,7 +55,9 @@ module Sequel
     def generate_down(tables)
       add_line "down do"
       indent do
-        table_names(tables).reverse.each {|table_name| add_line "drop_table #{table_name.inspect}" }
+        table_names(tables).reverse.each do |table_name| 
+          add_line "drop_table #{table_name.inspect}" unless @db.table_exists?(table_name)
+        end
       end
       add_line "end"
     end

@@ -27,7 +27,7 @@ end
 END
     
     mock_db = mock(:database)
-#    mock_db.should_receive(:table_exists?).at_least(:once).and_return(false)
+    mock_db.should_receive(:table_exists?).at_least(:once).and_return(false)
     Sequel::MigrationBuilder.new(mock_db).generate_migration(tables).should == expected
   end
 
@@ -62,7 +62,7 @@ end
 END
     
     mock_db = mock(:database)
-#    mock_db.should_receive(:table_exists?).at_least(:once).and_return(false)
+    mock_db.should_receive(:table_exists?).at_least(:once).and_return(false)
     Sequel::MigrationBuilder.new(mock_db).generate_migration(tables).should == expected
   end
 end
