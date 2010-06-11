@@ -1,12 +1,33 @@
 module Sequel
   module Schema
-    module MigrationOperations
+    module AlterTableOperations
       
-      def self.build(db_column, new_column)
+      # Returns an array of operations to change the current database
+      # table to be like the defined table.
+      #
+      def self.build(db_table, new_table)
+        db_columns = db_table[:columns].inject({}) {|hsh, column| hsh[column.name] = column; hsh }
+
+        operations = new_table[:columns].map do |column|
+          if db_columns[column.name]
+            build_column_operations column, db_columns[column.name]
+          else
+            AddColumn.new(column)
+          end
+        end.flatten
+
+        new_column_names = new_table[:columns].map {|c| c.name }
+        operations + (db_columns.keys - new_column_names).map {|column| DropColumn.new(column) }
+      end
+      
+      # Returns an array of operations to change the current database
+      # column to be like the defined column.
+      #
+      def self.build_column_operations(db_column, new_column)
         result = []
         
-        diffs = db_column.diff(new_column)        
-        result << :change_type_statement    if [:type, :size, :unsigned].any? {|sym| diffs.include?(sym) }
+        diffs = db_column.diff(new_column)
+        result << :change_type_statement    if [:column_type, :size, :unsigned].any? {|sym| diffs.include?(sym) }
         # only need to explicitly set the default if we're not changing the column type.
         result << :change_default_statement if diffs.include?(:default) && result.empty?
         result << :change_null_statement    if diffs.include?(:null)

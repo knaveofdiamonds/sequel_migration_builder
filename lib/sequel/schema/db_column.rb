@@ -32,7 +32,7 @@ module Sequel
       # table in an alter_table block.
       #
       def add_statement
-        ["add_column #{name.inspect}", column_type.inspect, add_options].compact.join(", ")
+        ["add_column #{name.inspect}", column_type.inspect, options].compact.join(", ")
       end
       
       # Returns a Sequel migration statement to change whether a column
@@ -49,6 +49,13 @@ module Sequel
         "set_column_default #{name.inspect}, #{default.inspect}"
       end
 
+      # Returns a Sequel migration statement to change the type of an
+      # existing column. Null changes must be handled separately.
+      #
+      def change_type_statement
+        ["set_column_type #{name.inspect}", column_type.inspect, change_options].compact.join(", ")
+      end
+
       # Returns an Array of attributes that are different between this
       # and another column.
       #
@@ -60,11 +67,13 @@ module Sequel
 
       private
 
-      def add_options
+      def change_options
         opts = []
 
         opts << ":default => #{default.inspect}"
-        opts << ":unsigned => #{unsigned}"
+        # seems odd, but we only want to output if unsigned is a true
+        # boolean, not if it is nil.
+        opts << ":unsigned => #{unsigned.inspect}" if unsigned == true || unsigned == false
         opts << ":size => #{size.inspect}"         if size
         opts << ":elements => #{elements.inspect}" if elements
 

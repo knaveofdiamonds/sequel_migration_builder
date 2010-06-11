@@ -15,7 +15,7 @@ describe Sequel::Schema::DbColumn do
   end
 
   it "should return an #add_statement" do
-    @column.add_statement.should == "add_column :foo, :integer, :default => 10, :unsigned => true, :size => 10"
+    @column.add_statement.should == "add_column :foo, :integer, :null => false, :default => 10, :unsigned => true, :size => 10"
   end
 
   it "should return a #change_null statement" do
@@ -24,6 +24,10 @@ describe Sequel::Schema::DbColumn do
 
   it "should return a #change_default statement" do
     @column.change_default_statement.should == "set_column_default :foo, 10"
+  end
+
+  it "should return a #change_type statement" do
+    @column.change_type_statement.should == "set_column_type :foo, :integer, :default => 10, :unsigned => true, :size => 10"
   end
 
   it "should be diffable with another DbColumn" do
