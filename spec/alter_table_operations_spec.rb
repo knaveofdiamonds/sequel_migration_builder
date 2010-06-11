@@ -106,3 +106,47 @@ describe "Sequel::Schema::AlterTableOperations.build" do
     ops.first.should be_kind_of(Sequel::Schema::AlterTableOperations::ChangeColumn)
   end
 end
+
+describe Sequel::Schema::AlterTableOperations::AddColumn do
+  before(:each) { @mock_column = mock() }
+
+  it "should ask the column for its add column statement on #up" do
+    @mock_column.should_receive(:add_statement)
+    Sequel::Schema::AlterTableOperations::AddColumn.new(@mock_column).up
+  end
+
+  it "should ask the column for its drop column statement on #down" do
+    @mock_column.should_receive(:drop_statement)
+    Sequel::Schema::AlterTableOperations::AddColumn.new(@mock_column).down
+  end
+end
+
+describe Sequel::Schema::AlterTableOperations::DropColumn do
+  before(:each) { @mock_column = mock() }
+
+  it "should ask the column for its drop column statement on #up" do
+    @mock_column.should_receive(:drop_statement)
+    Sequel::Schema::AlterTableOperations::DropColumn.new(@mock_column).up
+  end
+
+  it "should ask the column for its add column statement on #down" do
+    @mock_column.should_receive(:add_statement)
+    Sequel::Schema::AlterTableOperations::DropColumn.new(@mock_column).down
+  end
+end
+
+describe Sequel::Schema::AlterTableOperations::ChangeColumn do
+  it "should ask the new column for statement on #up" do
+    new = mock(:new)
+    old = mock(:old)
+    new.should_receive(:change_type_statement)
+    Sequel::Schema::AlterTableOperations::ChangeColumn.new(old, new, :change_type_statement).up
+  end
+
+  it "should ask the new column for statement on #down" do
+    new = mock(:new)
+    old = mock(:old)
+    old.should_receive(:change_type_statement)
+    Sequel::Schema::AlterTableOperations::ChangeColumn.new(old, new, :change_type_statement).down
+  end
+end
