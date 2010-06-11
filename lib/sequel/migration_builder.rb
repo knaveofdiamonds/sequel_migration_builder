@@ -1,6 +1,6 @@
 require 'sequel/schema/db_column'
 require 'sequel/schema/db_schema_parser'
-require 'sequel/schema/migration_operations'
+require 'sequel/schema/alter_table_operations'
 
 module Sequel
   class MigrationBuilder
