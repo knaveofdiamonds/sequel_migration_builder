@@ -10,7 +10,7 @@ module Sequel
 
         operations = new_table[:columns].map do |column|
           if db_columns[column.name]
-            build_column_operations column, db_columns[column.name]
+            build_column_operations db_columns[column.name], column
           else
             AddColumn.new(column)
           end

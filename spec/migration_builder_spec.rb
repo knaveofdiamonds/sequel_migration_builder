@@ -90,6 +90,44 @@ END
   end
 
 
+  context "when a table needs to be altered" do
+    before :each do
+      @tables = { :example_table =>
+        {:columns => [{:name => :foo, :column_type => :integer}, {:name => :bar, :column_type => :varchar}]}
+      }
+      @mock_db = mock(:database)
+      @mock_db.should_receive(:tables).at_least(:once).and_return([:example_table])
+      @mock_db.should_receive(:schema).with(:example_table).and_return([[:foo, {:type => :integer, :db_type => "smallint(5) unsigned", :allow_null => true, :ruby_default => 10}]])
+
+    end
+
+    it "should return an alter table statement with column changes for #generate_up" do
+      expected = <<-END
+up do
+  alter_table :example_table do
+    set_column_type :foo, :integer, :default => nil
+    set_column_allow_null :foo, false
+    add_column :bar, :varchar, :null => false
+  end
+end
+END
+      Sequel::MigrationBuilder.new(@mock_db).generate_up(@tables).join("\n").should == expected
+    end
+
+    it "should return an alter table statement with column changes for #generate_down" do
+      expected = <<-END
+down do
+  alter_table :example_table do
+    set_column_type :foo, :smallint, :default => 10, :unsigned => true
+    set_column_allow_null :foo, true
+    drop_column :bar
+  end
+end
+END
+      Sequel::MigrationBuilder.new(@mock_db).generate_down(@tables).join("\n").should == expected.strip
+    end
+  end
+
   it "should drop the table if the table exists in the database but not the table hash" do
     pending # Deal with in a later version.
     mock_db = mock(:database)

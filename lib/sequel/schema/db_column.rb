@@ -39,7 +39,7 @@ module Sequel
       # allows null values.
       #
       def change_null_statement
-        "set_column_allow_null #{name.inspect}, #{null.inspect}"
+        "set_column_allow_null #{name.inspect}, #{(!!null).inspect}"
       end
 
       # Returns a Sequel migration statement to change a column's default

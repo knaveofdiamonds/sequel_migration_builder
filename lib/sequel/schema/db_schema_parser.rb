@@ -56,7 +56,8 @@ module Sequel
       protected
 
       # Creates a new schema parser for the given database
-      # conenction. Use for_db instead.
+      # connection. Use for_db instead.
+      #
       def initialize(db)
         @db = db
       end
