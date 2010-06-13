@@ -1,6 +1,6 @@
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-require 'sequel_migration_builder'
+require 'sequel/migration_builder'
 require 'spec'
 require 'spec/autorun'
 

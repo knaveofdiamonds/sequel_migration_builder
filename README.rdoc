@@ -1,6 +1,44 @@
-= sequel_migration_builder
+= Sequel Migration Builder
 
-Description goes here.
+Builds sequel migrations based on the differences between an abstract
+representation of the desired schema and a database instance.
+
+== Example
+
+    require 'sequel/migration_builder'
+
+    desired_schema = { ... } # see below
+    builder = Sequel::MigrationBuilder.new(DB)
+    migration_code = builder.generate_migration(desired_schema)
+    File.write("001_some_migration.rb", migration_code)
+
+== Schema format
+
+The schema is an abstract representation of the tables in your database,
+as a hash. A sample YAML version might look like:
+
+    example_table:
+      primary_key: id
+      columns:
+        - name: id
+          column_type: integer
+        - name: foo
+          column_type: varchar
+          default: "bar"
+          null: true
+          size: 30
+     another_table:
+       ...
+
+== Requirements
+
+* Sequel 3.12.0 or higher
+
+== TODO
+
+* Dropping tables when they are removed from the schema
+* Automigrate functionality
+* Dealing with renames in some way (even if just logging that they would be possible).
 
 == Note on Patches/Pull Requests
  
