@@ -27,6 +27,7 @@ Gem::Specification.new do |s|
      "lib/sequel/schema/alter_table_operations.rb",
      "lib/sequel/schema/db_column.rb",
      "lib/sequel/schema/db_schema_parser.rb",
+     "sequel_migration_builder.gemspec",
      "spec/alter_table_operations_spec.rb",
      "spec/db_column_spec.rb",
      "spec/db_schema_parser_spec.rb",

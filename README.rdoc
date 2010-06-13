@@ -3,6 +3,16 @@
 Builds sequel migrations based on the differences between an abstract
 representation of the desired schema and a database instance.
 
+This is quite a low-level library - it doesn't provide any functionality
+to write out migration files, nor does it provide a ruby DSL for defining
+your schema (see Schema format below).
+
+This library is also very, very new, so there WILL be bugs.
+
+== Install
+
+    sudo gem install sequel_migration_builder
+
 == Example
 
     require 'sequel/migration_builder'
