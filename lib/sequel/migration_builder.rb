@@ -102,7 +102,7 @@ module Sequel
     # Generates an individual create_table statement.
     #
     def create_table_statement(table_name, table)
-      add_line "create_table #{table_name.inspect} do"
+      add_line "create_table #{table_name.inspect}#{options_str(table)} do"
       indent do
         table[:columns].map {|c| Schema::DbColumn.build_from_hash(c) }.each do |column|
           add_line column.define_statement
@@ -118,6 +118,10 @@ module Sequel
     private
 
     attr_reader :result
+
+    def options_str(table)
+      ", " + table[:table_options].inspect.gsub(/^\{|\}$/,'').gsub("=>", " => ") if table[:table_options]
+    end
 
     def table_names(tables)
       tables.keys.map {|n| n.to_s }.sort.map {|n| n.to_sym }
