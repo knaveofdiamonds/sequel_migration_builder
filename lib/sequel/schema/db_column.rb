@@ -83,7 +83,7 @@ module Sequel
       def options
         opts = []
 
-        opts << ":null => false"                   unless null == true
+        opts << ":null => #{(!!null).inspect}"     if null != true || column_type == :timestamp
         opts << ":default => #{default.inspect}"   if default || column_type == :timestamp
         opts << ":unsigned => true"                if unsigned
         opts << ":size => #{size.inspect}"         if size
