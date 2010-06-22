@@ -19,6 +19,8 @@ as a hash. A sample YAML version might look like:
 
     example_table:
       primary_key: id
+      table_options:
+        engine: myisam
       columns:
         - name: id
           column_type: integer
@@ -39,6 +41,8 @@ as a hash. A sample YAML version might look like:
 * Dropping tables when they are removed from the schema
 * Automigrate functionality
 * Dealing with renames in some way (even if just logging that they would be possible).
+* Changing table options with alter table
+* More database type parsers
 
 == Note on Patches/Pull Requests
  
