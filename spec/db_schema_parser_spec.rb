@@ -97,3 +97,20 @@ describe "Sequel::Schema::DbSchemaParser#parse_db_schema" do
     @parser.parse_db_schema.keys.should == [:table1]
   end
 end
+
+### Regression tests
+
+describe "Parsing a text column" do
+  it "should not raise an error because it does not have a size" do
+    parser = Sequel::Schema::DbSchemaParser.for_db(stub(:database))
+    schema = [[:example_column, 
+               { :type => :string, 
+                 :default => nil, 
+                 :ruby_default => nil, 
+                 :primary_key => false, 
+                 :db_type => "text", 
+                 :allow_null => true   }]]
+
+    lambda { parser.parse_table_schema(schema) }.should_not raise_error
+  end
+end

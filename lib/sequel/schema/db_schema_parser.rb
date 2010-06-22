@@ -82,7 +82,7 @@ module Sequel
 
       def extract_size(column)
         match = column.last[:db_type].match(/\((\d+)\)/)
-        match[1].to_i if match[1]
+        match[1].to_i if match && match[1]
       end
 
       def extract_enum_elements(column)
