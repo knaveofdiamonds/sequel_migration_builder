@@ -44,7 +44,7 @@ module Sequel
                                    :default     => column.last[:ruby_default],
                                    :null        => column.last[:allow_null],
                                    :column_type => type,
-                                   :unsigned    => extract_unsigned(column),
+                                   :unsigned    => extract_unsigned(column, type),
                                    :size        => extract_size(column, type),
                                    :elements    => extract_enum_elements(column, type))
         end
@@ -77,8 +77,9 @@ module Sequel
 
       private
 
-      def extract_unsigned(column)
-        column.last[:db_type].include?(" unsigned") if column.last[:type] == :integer
+      def extract_unsigned(column, type)
+        return unless DbColumn::NUMERIC_TYPES.include?(type)
+        column.last[:db_type].include?(" unsigned")
       end
 
       def extract_size(column, type)

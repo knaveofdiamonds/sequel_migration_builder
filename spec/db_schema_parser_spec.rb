@@ -76,8 +76,20 @@ describe "A hash in the array returned by Sequel::Schema::DbSchemaParser#parse_t
     @parser.parse_table_schema(@schema).first.unsigned.should == false
   end
 
-  it "should contain :unsigned true if a numeric column is unsigned" do
+  it "should contain :unsigned true if an integer column is unsigned" do
     set_db_type "int(10) unsigned"
+    @parser.parse_table_schema(@schema).first.unsigned.should == true
+  end
+
+  it "should contain :unsigned true if a decimal column is unsigned" do
+    @schema = [[:example_column, 
+                { :type => nil, 
+                  :default => "1", 
+                  :ruby_default => 1, 
+                  :primary_key => false, 
+                  :db_type => "decimal(10,2) unsigned", 
+                  :allow_null => true   }]]
+
     @parser.parse_table_schema(@schema).first.unsigned.should == true
   end
 

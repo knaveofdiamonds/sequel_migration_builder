@@ -8,6 +8,8 @@ module Sequel
     # migration operations.
     #
     class DbColumn
+      NUMERIC_TYPES = [:tinyint, :integer, :smallint, :mediumint, :bigint, :bigdecimal, :decimal, :float]
+
       # Builds a DbColumn from a Hash of attribute values. Keys 
       # can be strings or symbols.
       #
@@ -72,7 +74,7 @@ module Sequel
       end
 
       def numeric?
-        [:tinyint, :integer, :smallint, :mediumint, :bigint, :bigdecimal, :decimal, :float].include?(column_type)
+        NUMERIC_TYPES.include?(column_type)
       end
 
       private
@@ -93,7 +95,7 @@ module Sequel
         opts << ":default => #{default.inspect}"
         # seems odd, but we only want to output if unsigned is a true
         # boolean, not if it is nil.
-        opts << ":unsigned => #{unsigned.inspect}" if unsigned == true || unsigned == false
+        opts << ":unsigned => #{unsigned.inspect}" if numeric? && (unsigned == true || unsigned == false)
         opts << ":size => #{size.inspect}"         if size
         opts << ":elements => #{elements.inspect}" if elements
 
@@ -105,7 +107,7 @@ module Sequel
 
         opts << ":null => #{(!!null).inspect}"     if null != true || column_type == :timestamp
         opts << ":default => #{default.inspect}"   if default || column_type == :timestamp
-        opts << ":unsigned => true"                if unsigned
+        opts << ":unsigned => true"                if numeric? && unsigned
         opts << ":size => #{size.inspect}"         if size
         opts << ":elements => #{elements.inspect}" if elements
 
