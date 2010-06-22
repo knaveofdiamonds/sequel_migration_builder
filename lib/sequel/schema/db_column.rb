@@ -84,7 +84,7 @@ module Sequel
         opts = []
 
         opts << ":null => false"                   unless null == true
-        opts << ":default => #{default.inspect}"   if default
+        opts << ":default => #{default.inspect}"   if default || column_type == :timestamp
         opts << ":unsigned => true"                if unsigned
         opts << ":size => #{size.inspect}"         if size
         opts << ":elements => #{elements.inspect}" if elements
