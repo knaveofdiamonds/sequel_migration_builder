@@ -1,3 +1,5 @@
+require 'set'
+
 module Sequel
   module Schema
     DbColumn = Struct.new(:name, :column_type, :null, :default, :unsigned, :size, :elements)
@@ -8,6 +10,7 @@ module Sequel
     # migration operations.
     #
     class DbColumn
+      # Types that are considered numeric.
       NUMERIC_TYPES = [:tinyint, :integer, :smallint, :mediumint, :bigint, :bigdecimal, :decimal, :float]
 
       # Builds a DbColumn from a Hash of attribute values. Keys 
@@ -58,60 +61,97 @@ module Sequel
         ["set_column_type #{name.inspect}", column_type.inspect, change_options].compact.join(", ")
       end
 
-      # Returns an Array of attributes that are different between this
+      # Returns an Set of attributes that are different between this
       # and another column.
       #
       def diff(other)
-        result = []
-        result << :null if (!!other[:null]) != (!!self[:null])
-        result << :unsigned if (!!other[:unsigned]) != (!!self[:unsigned])
-        result << :name if other.name != name
-        result << :column_type if other.column_type != column_type
-        result << :default if defaults_different?(other)
-        result << :size if size && other.size && other.size != size
-        result << :elements if other.elements != elements
-        result
+        { :null        => :boolean_attribute_different?,
+          :unsigned    => :boolean_attribute_different?,
+          :name        => :attribute_different?,
+          :column_type => :attribute_different?,
+          :elements    => :attribute_different?,
+          :default     => :defaults_different?,
+          :size        => :sizes_different? 
+        }.select {|attribute, method| __send__(method, attribute, other) }.map {|a| a.first }.to_set
       end
 
+      # Returns true if this column is numeric
+      #
       def numeric?
         NUMERIC_TYPES.include?(column_type)
       end
 
       private
 
-      def defaults_different?(other)
+      def attribute_different?(sym, other)
+        other[sym] != self[sym]
+      end
+
+      def boolean_attribute_different?(sym, other)
+        (!!other[sym]) != (!!self[sym])
+      end
+
+      def numeric_attribute_different?(sym, other)
+        (self[sym] || 0) != (other[sym] || 0)
+      end
+
+      def sizes_different?(_, other)
+        # Null size indicates 'lack of interest' in the size
+        size && other.size && other.size != size
+      end
+
+      def defaults_different?(_, other)
+        # Complicated by dealing with database defaults if the column
+        # does not allow null values.
         if null == true || other.null == true
-          other.default != default
+          attribute_different?(:default, other)
         elsif numeric? && other.numeric?
-          (default || 0) != (other.default || 0)
+          numeric_attribute_different?(:default, other)
         else
           ! (default.blank? && other.default.blank?) && other.default != default
         end
       end
 
       def change_options
-        opts = []
+        opts = OptionBuilder.new
 
-        opts << ":default => #{default.inspect}"
+        opts.set :default, default
         # seems odd, but we only want to output if unsigned is a true
         # boolean, not if it is nil.
-        opts << ":unsigned => #{unsigned.inspect}" if numeric? && (unsigned == true || unsigned == false)
-        opts << ":size => #{size.inspect}"         if size
-        opts << ":elements => #{elements.inspect}" if elements
-
-        opts.join(", ") unless opts.empty?
+        opts.set :unsigned, unsigned if numeric? && (unsigned == true || unsigned == false)
+        opts.set :size, size         if size
+        opts.set :elements, elements if elements
+        
+        opts.render
       end
 
       def options
-        opts = []
+        opts = OptionBuilder.new
+        
+        opts.set :null, !!null       if null != true || column_type == :timestamp
+        opts.set :default, default   if default || column_type == :timestamp
+        opts.set :unsigned, true     if numeric? && unsigned
+        opts.set :size, size         if size
+        opts.set :elements, elements if elements
 
-        opts << ":null => #{(!!null).inspect}"     if null != true || column_type == :timestamp
-        opts << ":default => #{default.inspect}"   if default || column_type == :timestamp
-        opts << ":unsigned => true"                if numeric? && unsigned
-        opts << ":size => #{size.inspect}"         if size
-        opts << ":elements => #{elements.inspect}" if elements
+        opts.render
+      end
 
-        opts.join(", ") unless opts.empty?
+      # Formats column options in a Sequel migration
+      class OptionBuilder
+        def initialize
+          @opts = []
+        end
+        
+        # Sets column option name to a value.
+        def set(name, value)
+          @opts << "#{name.inspect} => #{value.inspect}"
+        end
+        
+        # Renders the column option hash in a pretty format.
+        def render
+          @opts.join(", ") unless @opts.empty?
+        end
       end
     end
   end

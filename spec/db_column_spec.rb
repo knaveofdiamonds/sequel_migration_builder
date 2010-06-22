@@ -32,10 +32,10 @@ describe Sequel::Schema::DbColumn do
 
   it "should be diffable with another DbColumn" do
     other = Sequel::Schema::DbColumn.new(:foo, :smallint, false, 10, true, 10, nil)
-    @column.diff(other).should == [:column_type]
+    @column.diff(other).should == [:column_type].to_set
 
     other = Sequel::Schema::DbColumn.new(:foo, :integer, true, 11, true, 10, nil)
-    @column.diff(other).should == [:null, :default]
+    @column.diff(other).should == [:null, :default].to_set
   end
 
   it "should not consider allowing null being nil different from false" do
@@ -62,15 +62,15 @@ describe Sequel::Schema::DbColumn do
   it "should consider 0 to be different from null if the column does allow nulls" do
     a = Sequel::Schema::DbColumn.new(:foo, :smallint, true, 0, true, 10, nil)
     b = Sequel::Schema::DbColumn.new(:foo, :smallint, true, nil, true, nil, nil)
-    a.diff(b).should == [:default]
-    b.diff(a).should == [:default]
+    a.diff(b).should == [:default].to_set
+    b.diff(a).should == [:default].to_set
   end
 
   it "should consider 1 to be different from null" do
     a = Sequel::Schema::DbColumn.new(:foo, :smallint, false, 1, true, 10, nil)
     b = Sequel::Schema::DbColumn.new(:foo, :smallint, false, nil, true, nil, nil)
-    a.diff(b).should == [:default]
-    b.diff(a).should == [:default]
+    a.diff(b).should == [:default].to_set
+    b.diff(a).should == [:default].to_set
   end
 
   it "should not consider '' to be different from null if the column does not allow nulls" do
@@ -83,8 +83,8 @@ describe Sequel::Schema::DbColumn do
   it "should consider '' to be different from null if the column allows null" do
     a = Sequel::Schema::DbColumn.new(:foo, :varchar, true, '', true, 10, nil)
     b = Sequel::Schema::DbColumn.new(:foo, :varchar, true, nil, true, nil, nil)
-    a.diff(b).should == [:default]
-    b.diff(a).should == [:default]
+    a.diff(b).should == [:default].to_set
+    b.diff(a).should == [:default].to_set
   end
 
   it "should be buildable from a Hash" do
