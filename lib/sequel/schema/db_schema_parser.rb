@@ -27,11 +27,10 @@ module Sequel
       #          :table2 => { ... } }
       #
       def parse_db_schema
-        result = {}
-        @db.tables.each do |table_name|
+        @db.tables.inject({}) do |result, table_name|
           result[table_name] = {:columns => parse_table_schema(@db.schema(table_name))}
+          result
         end
-        result
       end
 
       # Extracts an array of hashes representing the columns in the
