@@ -39,17 +39,14 @@ module Sequel
       #
       def parse_table_schema(db_schema)
         db_schema.map do |column|
-          attrs = { 
-            :name        => column.first,
-            :default     => column.last[:ruby_default],
-            :null        => column.last[:allow_null],
-            :column_type => parse_type(column.last[:db_type]),
-            :unsigned    => column.last[:db_type].include?(" unsigned") 
-          }
-          attrs[:size]     = extract_size(column) if column.last[:type] == :string
-          attrs[:elements] = extract_enum_elements(column) if attrs[:column_type] == :enum
-          
-          DbColumn.build_from_hash(attrs)
+          type = parse_type(column.last[:db_type])
+          DbColumn.build_from_hash(:name        => column.first,
+                                   :default     => column.last[:ruby_default],
+                                   :null        => column.last[:allow_null],
+                                   :column_type => type,
+                                   :unsigned    => extract_unsigned(column),
+                                   :size        => extract_size(column, type),
+                                   :elements    => extract_enum_elements(column, type))
         end
       end
 
@@ -80,12 +77,23 @@ module Sequel
 
       private
 
-      def extract_size(column)
-        match = column.last[:db_type].match(/\((\d+)\)/)
-        match[1].to_i if match && match[1]
+      def extract_unsigned(column)
+        column.last[:db_type].include?(" unsigned") if column.last[:type] == :integer
       end
 
-      def extract_enum_elements(column)
+      def extract_size(column, type)
+        return unless column.last[:type] == :string || type == :decimal
+
+        match = column.last[:db_type].match(/\(([0-9, ]+)\)/)
+        if match && match[1]
+          n = match[1].split(/\s*,\s*/).map {|i| i.to_i }
+          n.size == 1 ? n.first : n
+        end
+      end
+
+      def extract_enum_elements(column, type)
+        return unless type == :enum
+
         match = column.last[:db_type].match(/\(([^)]+)\)/)
         eval('[' + match[1] + ']') if match[1]
       end

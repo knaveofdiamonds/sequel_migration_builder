@@ -1,3 +1,4 @@
+require 'sequel/extensions/blank'
 require 'sequel/schema/db_column'
 require 'sequel/schema/db_schema_parser'
 require 'sequel/schema/alter_table_operations'

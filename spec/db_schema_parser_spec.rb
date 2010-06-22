@@ -66,6 +66,11 @@ describe "A hash in the array returned by Sequel::Schema::DbSchemaParser#parse_t
     @parser.parse_table_schema(@schema).first.size.should == 20
   end
 
+  it "should contain a :size attribute for decimal columns" do
+    set_db_type "decimal(14,5)"
+    @parser.parse_table_schema(@schema).first.size.should == [14,5]
+  end
+
   it "should contain :unsigned false if a numeric column is not unsigned" do
     set_db_type "int(10)"
     @parser.parse_table_schema(@schema).first.unsigned.should == false
@@ -74,6 +79,11 @@ describe "A hash in the array returned by Sequel::Schema::DbSchemaParser#parse_t
   it "should contain :unsigned true if a numeric column is unsigned" do
     set_db_type "int(10) unsigned"
     @parser.parse_table_schema(@schema).first.unsigned.should == true
+  end
+
+  it "should not contain an :unsigned value if not a numeric column" do
+    set_db_type "varchar(10)", :string
+    @parser.parse_table_schema(@schema).first.unsigned.should == nil
   end
 
   it "should contain the elements of an enum column" do

@@ -61,11 +61,31 @@ module Sequel
       #
       def diff(other)
         result = []
-        each_pair {|key, value| result << key if other[key] != value }
+        result << :null if (!!other[:null]) != (!!self[:null])
+        result << :unsigned if (!!other[:unsigned]) != (!!self[:unsigned])
+        result << :name if other.name != name
+        result << :column_type if other.column_type != column_type
+        result << :default if defaults_different?(other)
+        result << :size if size && other.size && other.size != size
+        result << :elements if other.elements != elements
         result
       end
 
+      def numeric?
+        [:tinyint, :integer, :smallint, :mediumint, :bigint, :bigdecimal, :decimal, :float].include?(column_type)
+      end
+
       private
+
+      def defaults_different?(other)
+        if null == true || other.null == true
+          other.default != default
+        elsif numeric? && other.numeric?
+          (default || 0) != (other.default || 0)
+        else
+          ! (default.blank? && other.default.blank?) && other.default != default
+        end
+      end
 
       def change_options
         opts = []

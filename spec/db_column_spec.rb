@@ -38,6 +38,55 @@ describe Sequel::Schema::DbColumn do
     @column.diff(other).should == [:null, :default]
   end
 
+  it "should not consider allowing null being nil different from false" do
+    a = Sequel::Schema::DbColumn.new(:foo, :smallint, false, 10, true, 10, nil)
+    b = Sequel::Schema::DbColumn.new(:foo, :smallint, nil, 10, true, 10, nil)
+    a.diff(b).should be_empty
+    b.diff(a).should be_empty
+  end
+
+  it "should not consider size to be different if one of the sizes is nil" do
+    a = Sequel::Schema::DbColumn.new(:foo, :smallint, false, 10, true, 10, nil)
+    b = Sequel::Schema::DbColumn.new(:foo, :smallint, false, 10, true, nil, nil)
+    a.diff(b).should be_empty
+    b.diff(a).should be_empty
+  end
+
+  it "should not consider 0 to be different from null if the column does not allow nulls" do
+    a = Sequel::Schema::DbColumn.new(:foo, :smallint, false, 0, true, 10, nil)
+    b = Sequel::Schema::DbColumn.new(:foo, :smallint, false, nil, true, nil, nil)
+    a.diff(b).should be_empty
+    b.diff(a).should be_empty
+  end
+
+  it "should consider 0 to be different from null if the column does allow nulls" do
+    a = Sequel::Schema::DbColumn.new(:foo, :smallint, true, 0, true, 10, nil)
+    b = Sequel::Schema::DbColumn.new(:foo, :smallint, true, nil, true, nil, nil)
+    a.diff(b).should == [:default]
+    b.diff(a).should == [:default]
+  end
+
+  it "should consider 1 to be different from null" do
+    a = Sequel::Schema::DbColumn.new(:foo, :smallint, false, 1, true, 10, nil)
+    b = Sequel::Schema::DbColumn.new(:foo, :smallint, false, nil, true, nil, nil)
+    a.diff(b).should == [:default]
+    b.diff(a).should == [:default]
+  end
+
+  it "should not consider '' to be different from null if the column does not allow nulls" do
+    a = Sequel::Schema::DbColumn.new(:foo, :varchar, false, '', true, 10, nil)
+    b = Sequel::Schema::DbColumn.new(:foo, :varchar, false, nil, true, nil, nil)
+    a.diff(b).should be_empty
+    b.diff(a).should be_empty
+  end
+
+  it "should consider '' to be different from null if the column allows null" do
+    a = Sequel::Schema::DbColumn.new(:foo, :varchar, true, '', true, 10, nil)
+    b = Sequel::Schema::DbColumn.new(:foo, :varchar, true, nil, true, nil, nil)
+    a.diff(b).should == [:default]
+    b.diff(a).should == [:default]
+  end
+
   it "should be buildable from a Hash" do
     Sequel::Schema::DbColumn.build_from_hash(:name => "foo", 
                                        :column_type => "integer").column_type.should == "integer"
