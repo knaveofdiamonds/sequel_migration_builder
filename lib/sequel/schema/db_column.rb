@@ -10,14 +10,20 @@ module Sequel
     # migration operations.
     #
     class DbColumn
-      # Types that are considered numeric.
-      NUMERIC_TYPES = [:tinyint, :integer, :smallint, :mediumint, :bigint, :bigdecimal, :decimal, :float]
+      # Database column types that hold integers.
+      INTEGER_TYPES = [:tinyint, :integer, :smallint, :mediumint, :bigint]
+
+      # Database column types that hold fractional values.
+      DECIMAL_TYPES = [:decimal, :float, :bigdecimal]
+
+      # All numeric database column types.
+      NUMERIC_TYPES = INTEGER_TYPES + DECIMAL_TYPES
 
       # Builds a DbColumn from a Hash of attribute values. Keys 
       # can be strings or symbols.
       #
       def self.build_from_hash(attrs={})
-        new *members.map {|key| attrs[key] || attrs[key.to_sym] }
+        self.new *members.map {|key| attrs[key] || attrs[key.to_sym] }
       end
 
       # Returns a Sequel migration statement to define a column in a

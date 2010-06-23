@@ -61,9 +61,7 @@ module Sequel
 
       add_line "down do"
       alter_tables(current_tables, tables, :down)
-      indent do
-        new_tables.reverse.each {|table_name| add_line "drop_table #{table_name.inspect}" }
-      end
+      drop_new_tables(new_tables)
       add_line "end"
     end
 
@@ -73,6 +71,14 @@ module Sequel
       each_table(new_table_names, tables) do |table_name, table, last_table|
         create_table_statement table_name, table
         add_blank_line unless last_table
+      end
+    end
+
+    # Generates any drop table statements for new tables.
+    #
+    def drop_new_tables(new_table_names)
+      indent do
+        new_table_names.reverse.each {|table_name| add_line "drop_table #{table_name.inspect}" }
       end
     end
 
