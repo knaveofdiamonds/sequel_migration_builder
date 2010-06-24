@@ -66,14 +66,36 @@ describe "A hash in the array returned by Sequel::Schema::DbSchemaParser#parse_t
     @parser.parse_table_schema(@schema).first.size.should == 20
   end
 
+  it "should contain a :size attribute for decimal columns" do
+    set_db_type "decimal(14,5)"
+    @parser.parse_table_schema(@schema).first.size.should == [14,5]
+  end
+
   it "should contain :unsigned false if a numeric column is not unsigned" do
     set_db_type "int(10)"
     @parser.parse_table_schema(@schema).first.unsigned.should == false
   end
 
-  it "should contain :unsigned true if a numeric column is unsigned" do
+  it "should contain :unsigned true if an integer column is unsigned" do
     set_db_type "int(10) unsigned"
     @parser.parse_table_schema(@schema).first.unsigned.should == true
+  end
+
+  it "should contain :unsigned true if a decimal column is unsigned" do
+    @schema = [[:example_column, 
+                { :type => nil, 
+                  :default => "1", 
+                  :ruby_default => 1, 
+                  :primary_key => false, 
+                  :db_type => "decimal(10,2) unsigned", 
+                  :allow_null => true   }]]
+
+    @parser.parse_table_schema(@schema).first.unsigned.should == true
+  end
+
+  it "should not contain an :unsigned value if not a numeric column" do
+    set_db_type "varchar(10)", :string
+    @parser.parse_table_schema(@schema).first.unsigned.should == nil
   end
 
   it "should contain the elements of an enum column" do
@@ -95,5 +117,22 @@ describe "Sequel::Schema::DbSchemaParser#parse_db_schema" do
 
     @parser = Sequel::Schema::DbSchemaParser.for_db(mock_db)
     @parser.parse_db_schema.keys.should == [:table1]
+  end
+end
+
+### Regression tests
+
+describe "Parsing a text column" do
+  it "should not raise an error because it does not have a size" do
+    parser = Sequel::Schema::DbSchemaParser.for_db(stub(:database))
+    schema = [[:example_column, 
+               { :type => :string, 
+                 :default => nil, 
+                 :ruby_default => nil, 
+                 :primary_key => false, 
+                 :db_type => "text", 
+                 :allow_null => true   }]]
+
+    lambda { parser.parse_table_schema(schema) }.should_not raise_error
   end
 end

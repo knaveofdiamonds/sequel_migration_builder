@@ -27,11 +27,10 @@ module Sequel
       #          :table2 => { ... } }
       #
       def parse_db_schema
-        result = {}
-        @db.tables.each do |table_name|
+        @db.tables.inject({}) do |result, table_name|
           result[table_name] = {:columns => parse_table_schema(@db.schema(table_name))}
+          result
         end
-        result
       end
 
       # Extracts an array of hashes representing the columns in the
@@ -39,17 +38,14 @@ module Sequel
       #
       def parse_table_schema(db_schema)
         db_schema.map do |column|
-          attrs = { 
-            :name        => column.first,
-            :default     => column.last[:ruby_default],
-            :null        => column.last[:allow_null],
-            :column_type => parse_type(column.last[:db_type]),
-            :unsigned    => column.last[:db_type].include?(" unsigned") 
-          }
-          attrs[:size]     = extract_size(column) if column.last[:type] == :string
-          attrs[:elements] = extract_enum_elements(column) if attrs[:column_type] == :enum
-          
-          DbColumn.build_from_hash(attrs)
+          type = parse_type(column.last[:db_type])
+          DbColumn.build_from_hash(:name        => column.first,
+                                   :default     => column.last[:ruby_default],
+                                   :null        => column.last[:allow_null],
+                                   :column_type => type,
+                                   :unsigned    => extract_unsigned(column.last[:db_type], type),
+                                   :size        => extract_size(column.last[:db_type], type),
+                                   :elements    => extract_enum_elements(column.last[:db_type], type))
         end
       end
 
@@ -80,13 +76,25 @@ module Sequel
 
       private
 
-      def extract_size(column)
-        match = column.last[:db_type].match(/\((\d+)\)/)
-        match[1].to_i if match[1]
+      def extract_unsigned(db_type_string, type)
+        return unless DbColumn::NUMERIC_TYPES.include?(type)
+        db_type_string.include?(" unsigned")
       end
 
-      def extract_enum_elements(column)
-        match = column.last[:db_type].match(/\(([^)]+)\)/)
+      def extract_size(db_type_string, type)
+        return if DbColumn::INTEGER_TYPES.include?(type)
+
+        match = db_type_string.match(/\(([0-9, ]+)\)/)
+        if match && match[1]
+          n = match[1].split(/\s*,\s*/).map {|i| i.to_i }
+          n.size == 1 ? n.first : n
+        end
+      end
+
+      def extract_enum_elements(db_type_string, type)
+        return unless type == :enum
+
+        match = db_type_string.match(/\(([^)]+)\)/)
         eval('[' + match[1] + ']') if match[1]
       end
     end

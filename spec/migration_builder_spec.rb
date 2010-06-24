@@ -89,6 +89,23 @@ END
       should == expected.strip
   end
 
+  it "should add the table options do the create_table statement" do
+    mock_db = mock(:database)
+    mock_db.should_receive(:tables).at_least(:once).and_return([])
+    table = {
+      :table_options => {:engine => "myisam"},
+      :columns => [{:name => :foo, :column_type => :integer}]
+    }
+
+    expected = <<-END
+create_table :example_table, :engine => "myisam" do
+  integer :foo, :null => false
+end
+END
+
+    Sequel::MigrationBuilder.new(mock_db).create_table_statement(:example_table, table).join("\n").
+      should == expected.strip
+  end
 
   context "when a table needs to be altered" do
     before :each do
