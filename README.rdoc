@@ -21,6 +21,10 @@ as a hash. A sample YAML version might look like:
       primary_key: id
       table_options:
         engine: myisam
+      indexes:
+        foo_index_name:
+          columns: foo
+          unique: true
       columns:
         - name: id
           column_type: integer

@@ -107,6 +107,26 @@ END
       should == expected.strip
   end
 
+  it "should add indexes to the create_table statement" do
+    mock_db = mock(:database)
+    mock_db.should_receive(:tables).at_least(:once).and_return([])
+    table = {
+      :indexes => {:foo_index => {:columns => :foo, :unique => true}},
+      :columns => [{:name => :foo, :column_type => :integer}]
+    }
+
+    expected = <<-END
+create_table :example_table do
+  integer :foo, :null => false
+
+  index :foo, :name => :foo_index, :unique => true
+end
+END
+
+    Sequel::MigrationBuilder.new(mock_db).create_table_statement(:example_table, table).join("\n").
+      should == expected.strip
+  end
+  
   context "when a table needs to be altered" do
     before :each do
       @tables = { :example_table =>

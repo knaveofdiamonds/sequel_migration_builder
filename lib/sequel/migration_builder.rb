@@ -114,6 +114,14 @@ module Sequel
         table[:columns].each do |c| 
           add_line Schema::DbColumn.build_from_hash(c).define_statement
         end
+        if table[:indexes]
+          add_blank_line
+          table[:indexes].each do |name, options|
+            opts = options.clone
+            columns = opts.delete(:columns)
+            add_line "index #{columns.inspect}, :name => #{name.to_sym.inspect}#{pretty_hash(opts)}"
+          end
+        end
         if table[:primary_key]
           add_blank_line
           add_line "primary_key #{table[:primary_key].inspect}"
@@ -139,7 +147,7 @@ module Sequel
     # Returns a string representing a hash as ':foo => :bar'
     # rather than '{:foo=.:bar}'
     def pretty_hash(hash)
-      ", " + hash.inspect.gsub(/^\{|\}$/,'').gsub("=>", " => ") if hash
+      ", " + hash.inspect.gsub(/^\{|\}$/,'').gsub("=>", " => ") if hash && ! hash.empty?
     end
 
     def table_names(tables)
