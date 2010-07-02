@@ -60,6 +60,14 @@ describe "Sequel::Schema::AlterTableOperations.build_column_operations" do
     ops.size.should == 1
     ops.first.up.should == "set_column_type :foo, :smallint, :default => 2"
   end
+
+  it "should return a ChangeColumn operation if the elements are different" do
+    a = build_column(:name => :foo, :column_type => :enum, :elements => ["A"])
+    b = build_column(:name => :foo, :column_type => :enum, :elements => ["A", "B"])
+    ops = Sequel::Schema::AlterTableOperations.build_column_operations(a,b)
+
+    ops.first.up.should == "set_column_type :foo, :enum, :default => nil, :elements => [\"A\", \"B\"]"
+  end
 end
 
 describe "Sequel::Schema::AlterTableOperations.build" do

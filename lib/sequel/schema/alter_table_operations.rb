@@ -44,7 +44,7 @@ module Sequel
         result = []
         
         diffs = db_column.diff(new_column)
-        result << :change_type_statement    if [:column_type, :size, :unsigned].any? {|sym| diffs.include?(sym) }
+        result << :change_type_statement    if [:elements, :column_type, :size, :unsigned].any? {|sym| diffs.include?(sym) }
         # only need to explicitly set the default if we're not changing the column type.
         result << :change_default_statement if diffs.include?(:default) && result.empty?
         result << :change_null_statement    if diffs.include?(:null)

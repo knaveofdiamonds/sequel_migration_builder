@@ -87,6 +87,13 @@ describe Sequel::Schema::DbColumn do
     b.diff(a).should == [:default].to_set
   end
 
+  it "should consider columns with different elements to be different" do
+    a = Sequel::Schema::DbColumn.new(:foo, :enum, true, nil, true, nil, ["A"])
+    b = Sequel::Schema::DbColumn.new(:foo, :enum, true, nil, true, nil, ["A", "B"])
+    a.diff(b).should == [:elements].to_set
+    b.diff(a).should == [:elements].to_set
+  end
+
   it "should be buildable from a Hash" do
     Sequel::Schema::DbColumn.build_from_hash(:name => "foo", 
                                        :column_type => "integer").column_type.should == "integer"
