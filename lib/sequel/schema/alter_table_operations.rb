@@ -17,7 +17,24 @@ module Sequel
         end.flatten
 
         new_column_names = new_table[:columns].map {|c| c.name }
-        operations + (db_columns.keys - new_column_names).map {|column| DropColumn.new(column) }
+        operations += (db_columns.keys - new_column_names).map {|name| DropColumn.new(db_columns[name]) }
+
+        db_indexes = db_table[:indexes] || {}
+        new_indexes = new_table[:indexes] || {}
+
+        operations += (db_indexes.keys - new_indexes.keys).map do |index_name|
+          DropIndex.new(index_name, 
+                        db_indexes[index_name][:columns],
+                        db_indexes[index_name][:unique])
+        end
+
+        operations += (new_indexes.keys - db_indexes.keys).map do |index_name|
+          AddIndex.new(index_name, 
+                       new_indexes[index_name][:columns],
+                       new_indexes[index_name][:unique])
+        end
+
+        operations
       end
       
       # Returns an array of operations to change the current database
@@ -35,49 +52,55 @@ module Sequel
         result.map {|k| ChangeColumn.new(db_column, new_column, k) }
       end
 
+      # Base alter table operation class. Each operation will return
+      # Sequel::Migration statement(s) to alter the table.
+      class Operation
+        # Returns the statement for the up part of the migration
+        attr_reader :up
+        
+        # Returns the statement for the down part of the operation
+        attr_reader :down
+      end
+
       # Changes a column.
-      class ChangeColumn
+      class ChangeColumn < Operation
         def initialize(old_column, new_column, statement)
-          @old_column, @new_column = old_column, new_column
-          @statement_method = statement
-        end
-
-        def up
-          @new_column.__send__(@statement_method)
-        end
-
-        def down
-          @old_column.__send__(@statement_method)
+          @up = new_column.__send__(statement)
+          @down = old_column.__send__(statement)
         end
       end
 
       # Adds a column.
-      class AddColumn
+      class AddColumn < Operation
         def initialize(column)
-          @column = column
-        end
-
-        def up
-          @column.add_statement
-        end
-
-        def down
-          @column.drop_statement
+          @up = column.add_statement
+          @down = column.drop_statement
         end
       end
 
       # Drops a column.
-      class DropColumn
+      class DropColumn < Operation
         def initialize(column)
-          @column = column
+          @up = column.drop_statement
+          @down = column.add_statement
         end
+      end
 
-        def up
-          @column.drop_statement
+      # Adds an index.
+      class AddIndex < Operation
+        def initialize(name, columns, unique)
+          @up   = "add_index #{columns.inspect}, :name => #{name.inspect}"
+          @up << ", :unique => true" if unique
+          @down = "drop_index #{columns.inspect}, :name => #{name.inspect}"
         end
+      end
 
-        def down
-          @column.add_statement
+      # Drops an index.
+      class DropIndex < Operation
+        def initialize(name, columns, unique)
+          @up = "drop_index #{columns.inspect}, :name => #{name.inspect}"
+          @down = "add_index #{columns.inspect}, :name => #{name.inspect}"
+          @down << ", :unique => true" if unique
         end
       end
     end

@@ -130,10 +130,12 @@ END
   context "when a table needs to be altered" do
     before :each do
       @tables = { :example_table =>
-        {:columns => [{:name => :foo, :column_type => :integer}, {:name => :bar, :column_type => :varchar}]}
+        { :indexes => {:foo_index => {:columns => :foo, :unique => true}},
+          :columns => [{:name => :foo, :column_type => :integer}, {:name => :bar, :column_type => :varchar}]}
       }
       @mock_db = mock(:database)
       @mock_db.should_receive(:tables).at_least(:once).and_return([:example_table])
+      @mock_db.should_receive(:indexes).with(:example_table).and_return({})
       @mock_db.should_receive(:schema).with(:example_table).and_return([[:foo, {:type => :integer, :db_type => "smallint(5) unsigned", :allow_null => true, :ruby_default => 10}]])
 
     end
@@ -145,6 +147,7 @@ up do
     set_column_type :foo, :integer, :default => nil
     set_column_allow_null :foo, false
     add_column :bar, :varchar, :null => false
+    add_index :foo, :name => :foo_index, :unique => true
   end
 end
 END
@@ -158,6 +161,7 @@ down do
     set_column_type :foo, :smallint, :default => 10, :unsigned => true
     set_column_allow_null :foo, true
     drop_column :bar
+    drop_index :foo, :name => :foo_index
   end
 end
 END

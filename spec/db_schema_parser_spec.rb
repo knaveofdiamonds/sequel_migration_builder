@@ -114,6 +114,7 @@ describe "Sequel::Schema::DbSchemaParser#parse_db_schema" do
     mock_db = mock(:db)
     mock_db.should_receive(:tables).at_least(:once).and_return([:table1])
     mock_db.should_receive(:schema).with(:table1).and_return([])
+    mock_db.should_receive(:indexes).with(:table1)
 
     @parser = Sequel::Schema::DbSchemaParser.for_db(mock_db)
     @parser.parse_db_schema.keys.should == [:table1]
