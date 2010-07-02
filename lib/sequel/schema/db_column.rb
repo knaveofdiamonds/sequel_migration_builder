@@ -14,7 +14,7 @@ module Sequel
       INTEGER_TYPES = [:tinyint, :integer, :smallint, :mediumint, :bigint]
 
       # Database column types that hold fractional values.
-      DECIMAL_TYPES = [:decimal, :float, :bigdecimal]
+      DECIMAL_TYPES = [:decimal, :float, :double, :real]
 
       # All numeric database column types.
       NUMERIC_TYPES = INTEGER_TYPES + DECIMAL_TYPES
@@ -81,7 +81,7 @@ module Sequel
         }.select {|attribute, method| __send__(method, attribute, other) }.map {|a| a.first }.to_set
       end
 
-      # Returns true if this column is numeric
+      # Returns true if this column is numeric.
       #
       def numeric?
         NUMERIC_TYPES.include?(column_type)
