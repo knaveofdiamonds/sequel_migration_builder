@@ -78,10 +78,8 @@ END
 
     expected = <<-END
 create_table :example_table do
-  integer :foo, :null => false
+  primary_key :foo, :type => :integer, :null => false
   varchar :bar, :null => false
-
-  primary_key :foo
 end
 END
 

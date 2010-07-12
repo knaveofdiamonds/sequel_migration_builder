@@ -111,8 +111,13 @@ module Sequel
     def create_table_statement(table_name, table)
       add_line "create_table #{table_name.inspect}#{pretty_hash(table[:table_options])} do"
       indent do
+        table[:primary_key] = [table[:primary_key]] if table[:primary_key].kind_of?(Symbol)
         table[:columns].each do |c| 
-          add_line Schema::DbColumn.build_from_hash(c).define_statement
+          column = Schema::DbColumn.build_from_hash(c)
+          if table[:primary_key] && table[:primary_key].size == 1 && table[:primary_key].first == column.name
+            column.single_primary_key = true
+          end
+          add_line column.define_statement
         end
         if table[:indexes]
           add_blank_line
@@ -122,7 +127,7 @@ module Sequel
             add_line "index #{columns.inspect}, :name => #{name.to_sym.inspect}#{pretty_hash(opts)}"
           end
         end
-        if table[:primary_key]
+        if table[:primary_key] && table[:primary_key].size > 1
           add_blank_line
           add_line "primary_key #{table[:primary_key].inspect}"
         end
