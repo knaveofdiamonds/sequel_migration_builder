@@ -137,3 +137,18 @@ describe "Parsing a text column" do
     lambda { parser.parse_table_schema(schema) }.should_not raise_error
   end
 end
+
+describe "Parsing an enum column" do
+  it "should not raise an error when enum values contains brackets" do
+    parser = Sequel::Schema::DbSchemaParser.for_db(stub(:database))
+    schema = [[:example_column, 
+               { :type => :string, 
+                 :default => nil, 
+                 :ruby_default => nil, 
+                 :primary_key => false, 
+                 :db_type => "enum('foo (bar)', 'baz')",
+                 :allow_null => true   }]]
+
+    lambda { parser.parse_table_schema(schema) }.should_not raise_error(SyntaxError)
+  end
+end

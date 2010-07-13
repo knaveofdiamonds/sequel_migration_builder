@@ -97,7 +97,7 @@ module Sequel
       def extract_enum_elements(db_type_string, type)
         return unless type == :enum
 
-        match = db_type_string.match(/\(([^)]+)\)/)
+        match = db_type_string.match(/\((.+)\)/)
         eval('[' + match[1] + ']') if match[1]
       end
     end
