@@ -142,7 +142,7 @@ describe "Parsing an enum column" do
   it "should not raise an error when enum values contains brackets" do
     parser = Sequel::Schema::DbSchemaParser.for_db(stub(:database))
     schema = [[:example_column, 
-               { :type => :string, 
+               { :type => :enum, 
                  :default => nil, 
                  :ruby_default => nil, 
                  :primary_key => false, 
