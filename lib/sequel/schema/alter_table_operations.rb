@@ -17,12 +17,18 @@ module Sequel
         end.flatten
 
         new_column_names = new_table[:columns].map {|c| c.name }
-        operations += (db_columns.keys - new_column_names).map {|name| DropColumn.new(db_columns[name]) }
+        dropped_columns = db_columns.keys - new_column_names
+
+        operations += dropped_columns.map do |name| 
+          DropColumn.new(db_columns[name])
+        end
 
         db_indexes = db_table[:indexes] || {}
         new_indexes = new_table[:indexes] || {}
 
-        operations += (db_indexes.keys - new_indexes.keys).map do |index_name|
+        operations += (db_indexes.keys - new_indexes.keys).reject do |index_name|
+          db_indexes[index_name][:columns].size == 1 && dropped_columns.include?(db_indexes[index_name][:columns].first)
+        end.map do |index_name|
           DropIndex.new(index_name, 
                         db_indexes[index_name][:columns],
                         db_indexes[index_name][:unique])

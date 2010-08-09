@@ -113,6 +113,17 @@ describe "Sequel::Schema::AlterTableOperations.build" do
     ops.size.should == 1
     ops.first.should be_kind_of(Sequel::Schema::AlterTableOperations::ChangeColumn)
   end
+
+  it "should not output a drop index if the index's column is also removed" do
+    table_a = {:name => :example_table,
+      :indexes => {:foo_idx => {:columns => [:foo]}},
+      :columns => [build_column(:name => :foo, :column_type => :integer)]}
+    table_b = {:name => :example_table, :indexes => {}, :columns => []}
+    ops = Sequel::Schema::AlterTableOperations.build(table_a,table_b)
+
+    ops.size.should == 1
+    ops.first.should be_kind_of(Sequel::Schema::AlterTableOperations::DropColumn)
+  end
 end
 
 describe Sequel::Schema::AlterTableOperations::AddColumn do
