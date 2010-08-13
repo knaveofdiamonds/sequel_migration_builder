@@ -26,18 +26,26 @@ module Sequel
         db_indexes = db_table[:indexes] || {}
         new_indexes = new_table[:indexes] || {}
 
-        operations += (db_indexes.keys - new_indexes.keys).reject do |index_name|
-          db_indexes[index_name][:columns].size == 1 && dropped_columns.include?(db_indexes[index_name][:columns].first)
-        end.map do |index_name|
+        operations += (db_indexes.keys - new_indexes.keys).map do |index_name|
+          dropped_column = db_indexes[index_name][:columns].size == 1 && dropped_columns.include?(db_indexes[index_name][:columns].first)
+
           DropIndex.new(index_name, 
                         db_indexes[index_name][:columns],
-                        db_indexes[index_name][:unique])
+                        db_indexes[index_name][:unique],
+                        ! dropped_column)
         end
 
         operations += (new_indexes.keys - db_indexes.keys).map do |index_name|
+          if new_indexes[index_name][:columns].kind_of?(Symbol)
+            dropped_column = dropped_columns.include?(new_indexes[index_name][:columns])
+          else
+            dropped_column = new_indexes[index_name][:columns].size == 1 && dropped_columns.include?(new_indexes[index_name][:columns].first)
+          end
+
           AddIndex.new(index_name, 
                        new_indexes[index_name][:columns],
-                       new_indexes[index_name][:unique])
+                       new_indexes[index_name][:unique],
+                       ! dropped_column)
         end
 
         operations
@@ -94,17 +102,21 @@ module Sequel
 
       # Adds an index.
       class AddIndex < Operation
-        def initialize(name, columns, unique)
+        def initialize(name, columns, unique, include_drop_index=true)
           @up   = "add_index #{columns.inspect}, :name => #{name.inspect}"
           @up << ", :unique => true" if unique
-          @down = "drop_index #{columns.inspect}, :name => #{name.inspect}"
+          if include_drop_index
+            @down = "drop_index #{columns.inspect}, :name => #{name.inspect}"
+          end
         end
       end
 
       # Drops an index.
       class DropIndex < Operation
-        def initialize(name, columns, unique)
-          @up = "drop_index #{columns.inspect}, :name => #{name.inspect}"
+        def initialize(name, columns, unique, include_drop_index=true)
+          if include_drop_index
+            @up = "drop_index #{columns.inspect}, :name => #{name.inspect}"
+          end
           @down = "add_index #{columns.inspect}, :name => #{name.inspect}"
           @down << ", :unique => true" if unique
         end

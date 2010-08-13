@@ -101,7 +101,7 @@ module Sequel
     def alter_table_statement(table_name, operations, direction)
       add_line "alter_table #{table_name.inspect} do"
       indent do
-        operations.each {|op| add_line op.__send__(direction) }
+        operations.map {|op| op.__send__(direction) }.compact.each {|op| add_line op }
       end
       add_line "end"
     end
