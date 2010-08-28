@@ -28,7 +28,10 @@ module Sequel
       #
       def parse_db_schema
         @db.tables.inject({}) do |result, table_name|
-          result[table_name] = {:columns => parse_table_schema(@db.schema(table_name))}
+          result[table_name] = {
+            :indexes => @db.indexes(table_name),
+            :columns => parse_table_schema(@db.schema(table_name))
+          }
           result
         end
       end
@@ -94,7 +97,7 @@ module Sequel
       def extract_enum_elements(db_type_string, type)
         return unless type == :enum
 
-        match = db_type_string.match(/\(([^)]+)\)/)
+        match = db_type_string.match(/\((.+)\)/)
         eval('[' + match[1] + ']') if match[1]
       end
     end

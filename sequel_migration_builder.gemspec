@@ -5,19 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{sequel_migration_builder}
-<<<<<<< HEAD
-  s.version = "0.0.1"
+  s.version = "0.1.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Roland Swingler"]
-  s.date = %q{2010-06-13}
-=======
-  s.version = "0.0.5"
-
-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Roland Swingler"]
-  s.date = %q{2010-06-23}
->>>>>>> e06bc1b2b548ef5d27048b8b0b59e146d2107dd1
+  s.date = %q{2010-08-13}
   s.description = %q{Build Sequel Migrations based on the differences between two schemas}
   s.email = %q{roland.swingler@gmail.com}
   s.extra_rdoc_files = [

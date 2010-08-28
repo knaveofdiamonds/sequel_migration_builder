@@ -2,7 +2,7 @@ require 'set'
 
 module Sequel
   module Schema
-    DbColumn = Struct.new(:name, :column_type, :null, :default, :unsigned, :size, :elements)
+    DbColumn = Struct.new(:name, :column_type, :null, :default, :unsigned, :size, :elements, :single_primary_key)
 
     # A column in a database table.
     #
@@ -14,7 +14,7 @@ module Sequel
       INTEGER_TYPES = [:tinyint, :integer, :smallint, :mediumint, :bigint]
 
       # Database column types that hold fractional values.
-      DECIMAL_TYPES = [:decimal, :float, :bigdecimal]
+      DECIMAL_TYPES = [:decimal, :float, :double, :real]
 
       # All numeric database column types.
       NUMERIC_TYPES = INTEGER_TYPES + DECIMAL_TYPES
@@ -30,7 +30,11 @@ module Sequel
       # create_table block.
       #
       def define_statement
-        ["#{column_type} #{name.inspect}", options].compact.join(", ")
+        if single_primary_key
+          ["primary_key #{name.inspect}, :type => #{column_type.inspect}", options].compact.join(", ")
+        else
+          ["#{column_type} #{name.inspect}", options].compact.join(", ")
+        end
       end
 
       # Returns a Sequel migration statement to remove the column.
@@ -81,7 +85,7 @@ module Sequel
         }.select {|attribute, method| __send__(method, attribute, other) }.map {|a| a.first }.to_set
       end
 
-      # Returns true if this column is numeric
+      # Returns true if this column is numeric.
       #
       def numeric?
         NUMERIC_TYPES.include?(column_type)

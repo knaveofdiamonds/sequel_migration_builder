@@ -101,7 +101,7 @@ module Sequel
     def alter_table_statement(table_name, operations, direction)
       add_line "alter_table #{table_name.inspect} do"
       indent do
-        operations.each {|op| add_line op.__send__(direction) }
+        operations.map {|op| op.__send__(direction) }.compact.each {|op| add_line op }
       end
       add_line "end"
     end
@@ -111,10 +111,23 @@ module Sequel
     def create_table_statement(table_name, table)
       add_line "create_table #{table_name.inspect}#{pretty_hash(table[:table_options])} do"
       indent do
+        table[:primary_key] = [table[:primary_key]] if table[:primary_key].kind_of?(Symbol)
         table[:columns].each do |c| 
-          add_line Schema::DbColumn.build_from_hash(c).define_statement
+          column = Schema::DbColumn.build_from_hash(c)
+          if table[:primary_key] && table[:primary_key].size == 1 && table[:primary_key].first == column.name
+            column.single_primary_key = true
+          end
+          add_line column.define_statement
         end
-        if table[:primary_key]
+        if table[:indexes]
+          add_blank_line
+          table[:indexes].each do |name, options|
+            opts = options.clone
+            columns = opts.delete(:columns)
+            add_line "index #{columns.inspect}, :name => #{name.to_sym.inspect}#{pretty_hash(opts)}"
+          end
+        end
+        if table[:primary_key] && table[:primary_key].size > 1
           add_blank_line
           add_line "primary_key #{table[:primary_key].inspect}"
         end
@@ -139,7 +152,7 @@ module Sequel
     # Returns a string representing a hash as ':foo => :bar'
     # rather than '{:foo=.:bar}'
     def pretty_hash(hash)
-      ", " + hash.inspect.gsub(/^\{|\}$/,'').gsub("=>", " => ") if hash
+      ", " + hash.inspect.gsub(/^\{|\}$/,'').gsub("=>", " => ") if hash && ! hash.empty?
     end
 
     def table_names(tables)

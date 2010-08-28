@@ -9,6 +9,11 @@ describe Sequel::Schema::DbColumn do
   it "should return a #define_statement" do
     @column.define_statement.should == "integer :foo, :null => false, :default => 10, :unsigned => true, :size => 10"
   end
+
+  it "should return a primary_key invocation if single_primary_key is set" do
+    @column.single_primary_key = true
+    @column.define_statement.should == "primary_key :foo, :type => :integer, :null => false, :default => 10, :unsigned => true, :size => 10"
+  end
   
   it "should return a #drop_statement" do
     @column.drop_statement.should == "drop_column :foo"
@@ -85,6 +90,13 @@ describe Sequel::Schema::DbColumn do
     b = Sequel::Schema::DbColumn.new(:foo, :varchar, true, nil, true, nil, nil)
     a.diff(b).should == [:default].to_set
     b.diff(a).should == [:default].to_set
+  end
+
+  it "should consider columns with different elements to be different" do
+    a = Sequel::Schema::DbColumn.new(:foo, :enum, true, nil, true, nil, ["A"])
+    b = Sequel::Schema::DbColumn.new(:foo, :enum, true, nil, true, nil, ["A", "B"])
+    a.diff(b).should == [:elements].to_set
+    b.diff(a).should == [:elements].to_set
   end
 
   it "should be buildable from a Hash" do

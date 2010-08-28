@@ -114,6 +114,7 @@ describe "Sequel::Schema::DbSchemaParser#parse_db_schema" do
     mock_db = mock(:db)
     mock_db.should_receive(:tables).at_least(:once).and_return([:table1])
     mock_db.should_receive(:schema).with(:table1).and_return([])
+    mock_db.should_receive(:indexes).with(:table1)
 
     @parser = Sequel::Schema::DbSchemaParser.for_db(mock_db)
     @parser.parse_db_schema.keys.should == [:table1]
@@ -134,5 +135,20 @@ describe "Parsing a text column" do
                  :allow_null => true   }]]
 
     lambda { parser.parse_table_schema(schema) }.should_not raise_error
+  end
+end
+
+describe "Parsing an enum column" do
+  it "should not raise an error when enum values contains brackets" do
+    parser = Sequel::Schema::DbSchemaParser.for_db(stub(:database))
+    schema = [[:example_column, 
+               { :type => :enum, 
+                 :default => nil, 
+                 :ruby_default => nil, 
+                 :primary_key => false, 
+                 :db_type => "enum('foo (bar)', 'baz')",
+                 :allow_null => true   }]]
+
+    lambda { parser.parse_table_schema(schema) }.should_not raise_error(SyntaxError)
   end
 end
