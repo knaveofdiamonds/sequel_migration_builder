@@ -30,38 +30,23 @@ module Sequel
 
       add_line "Sequel.migration do"
       indent do
-        generate_up(tables)
-        generate_down(tables)
+        generate_migration_body(tables)
       end
       add_line "end\n"
 
       result.join("\n")
     end
 
-    # Generates the 'up' part of the migration.
+    # Generates the 'change' block of the migration.
     #
-    def generate_up(tables)
+    def generate_migration_body(tables)
       current_tables, new_tables = table_names(tables).partition do |table_name| 
         @db_table_names.include?(table_name)
       end
 
-      add_line "up do"
+      add_line "change do"
       create_new_tables(new_tables, tables)
       alter_tables(current_tables, tables, :up)
-      add_line "end"
-      add_blank_line
-    end
-
-    # Generates the down part of the migration.
-    #
-    def generate_down(tables)
-      current_tables, new_tables = table_names(tables).partition do |table_name| 
-        @db_table_names.include?(table_name)
-      end
-
-      add_line "down do"
-      alter_tables(current_tables, tables, :down)
-      drop_new_tables(new_tables)
       add_line "end"
     end
 

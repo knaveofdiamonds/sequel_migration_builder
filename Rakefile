@@ -10,7 +10,7 @@ begin
     gem.email = "roland.swingler@gmail.com"
     gem.homepage = "http://github.com/knaveofdiamonds/sequel_migration_builder"
     gem.authors = ["Roland Swingler"]
-    gem.add_dependency "sequel", ">= 3.12.0"
+    gem.add_dependency "sequel", ">= 3.18.0"
     gem.add_development_dependency "rspec", ">= 1.2.9"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end

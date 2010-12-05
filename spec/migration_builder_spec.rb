@@ -16,14 +16,10 @@ describe Sequel::MigrationBuilder do
 
     expected = <<-END
 Sequel.migration do
-  up do
+  change do
     create_table :example_table do
       integer :foo, :null => false
     end
-  end
-
-  down do
-    drop_table :example_table
   end
 end
 END
@@ -45,7 +41,7 @@ END
 
     expected = <<-END
 Sequel.migration do
-  up do
+  change do
     create_table :example_table do
       integer :foo, :null => false
       varchar :bar, :null => false
@@ -54,11 +50,6 @@ Sequel.migration do
     create_table :example_table_2 do
       integer :foo
     end
-  end
-
-  down do
-    drop_table :example_table_2
-    drop_table :example_table
   end
 end
 END
@@ -140,7 +131,7 @@ END
 
     it "should return an alter table statement with column changes for #generate_up" do
       expected = <<-END
-up do
+change do
   alter_table :example_table do
     set_column_type :foo, :integer, :default => nil
     set_column_allow_null :foo, false
@@ -149,21 +140,8 @@ up do
   end
 end
 END
-      Sequel::MigrationBuilder.new(@mock_db).generate_up(@tables).join("\n").should == expected
-    end
-
-    it "should return an alter table statement with column changes for #generate_down" do
-      expected = <<-END
-down do
-  alter_table :example_table do
-    set_column_type :foo, :smallint, :default => 10, :unsigned => true
-    set_column_allow_null :foo, true
-    drop_column :bar
-    drop_index :foo, :name => :foo_index
-  end
-end
-END
-      Sequel::MigrationBuilder.new(@mock_db).generate_down(@tables).join("\n").should == expected.strip
+      Sequel::MigrationBuilder.new(@mock_db).
+        generate_migration_body(@tables).join("\n").should == expected.strip
     end
   end
 
@@ -173,7 +151,7 @@ END
     mock_db.should_receive(:tables).at_least(:once).and_return([:example_table])
     
     expected = <<-END
-up do
+change do
   drop_table :example_table
 end
 END

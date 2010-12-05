@@ -71,16 +71,12 @@ module Sequel
       class Operation
         # Returns the statement for the up part of the migration
         attr_reader :up
-        
-        # Returns the statement for the down part of the operation
-        attr_reader :down
       end
 
       # Changes a column.
       class ChangeColumn < Operation
         def initialize(old_column, new_column, statement)
           @up = new_column.__send__(statement)
-          @down = old_column.__send__(statement)
         end
       end
 
@@ -88,7 +84,6 @@ module Sequel
       class AddColumn < Operation
         def initialize(column)
           @up = column.add_statement
-          @down = column.drop_statement
         end
       end
 
@@ -96,7 +91,6 @@ module Sequel
       class DropColumn < Operation
         def initialize(column)
           @up = column.drop_statement
-          @down = column.add_statement
         end
       end
 
@@ -105,9 +99,6 @@ module Sequel
         def initialize(name, columns, unique, include_drop_index=true)
           @up   = "add_index #{columns.inspect}, :name => #{name.inspect}"
           @up << ", :unique => true" if unique
-          if include_drop_index
-            @down = "drop_index #{columns.inspect}, :name => #{name.inspect}"
-          end
         end
       end
 
@@ -117,8 +108,6 @@ module Sequel
           if include_drop_index
             @up = "drop_index #{columns.inspect}, :name => #{name.inspect}"
           end
-          @down = "add_index #{columns.inspect}, :name => #{name.inspect}"
-          @down << ", :unique => true" if unique
         end
       end
     end
