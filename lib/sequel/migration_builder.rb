@@ -94,30 +94,46 @@ module Sequel
     # Generates an individual create_table statement.
     #
     def create_table_statement(table_name, table)
+      normalize_primary_key(table)
       add_line "create_table #{table_name.inspect}#{pretty_hash(table[:table_options])} do"
       indent do
-        table[:primary_key] = [table[:primary_key]] if table[:primary_key].kind_of?(Symbol)
-        table[:columns].each do |c| 
-          column = Schema::DbColumn.build_from_hash(c)
-          if table[:primary_key] && table[:primary_key].size == 1 && table[:primary_key].first == column.name
-            column.single_primary_key = true
-          end
-          add_line column.define_statement
-        end
-        if table[:indexes]
-          add_blank_line
-          table[:indexes].each do |name, options|
-            opts = options.clone
-            columns = opts.delete(:columns)
-            add_line "index #{columns.inspect}, :name => #{name.to_sym.inspect}#{pretty_hash(opts)}"
-          end
-        end
-        if table[:primary_key] && table[:primary_key].size > 1
-          add_blank_line
-          add_line "primary_key #{table[:primary_key].inspect}"
-        end
+        output_columns(table[:columns], table[:primary_key])
+        output_indexes(table[:indexes])
+        output_composite_primary_key(table[:primary_key])
       end
       add_line "end"
+    end
+
+    def normalize_primary_key(table)
+      table[:primary_key] = [table[:primary_key]] if table[:primary_key].kind_of?(Symbol)
+    end
+
+    def output_columns(columns, primary_key)
+      columns.each do |c| 
+        column = Schema::DbColumn.build_from_hash(c)
+        if primary_key && primary_key.size == 1 && primary_key.first == column.name
+          column.single_primary_key = true
+        end
+        add_line column.define_statement
+      end
+    end
+
+    def output_indexes(indexes)
+      if indexes
+        add_blank_line
+        indexes.each do |name, options|
+          opts = options.clone
+          columns = opts.delete(:columns)
+          add_line "index #{columns.inspect}, :name => #{name.to_sym.inspect}#{pretty_hash(opts)}"
+        end
+      end
+    end
+
+    def output_composite_primary_key(primary_key)
+      if primary_key && primary_key.size > 1
+        add_blank_line
+        add_line "primary_key #{primary_key.inspect}"
+      end
     end
 
     private
