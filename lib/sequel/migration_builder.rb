@@ -46,7 +46,7 @@ module Sequel
 
       add_line "change do"
       create_new_tables(new_tables, tables)
-      alter_tables(current_tables, tables, :up)
+      alter_tables(current_tables, tables)
       add_line "end"
     end
 
@@ -69,13 +69,13 @@ module Sequel
 
     # Generates any alter table statements for current tables.
     #
-    def alter_tables(current_table_names, tables, direction)
+    def alter_tables(current_table_names, tables)
       each_table(current_table_names, tables) do |table_name, table, last_table|
         hsh = table.dup
         hsh[:columns] = hsh[:columns].map {|c| Schema::DbColumn.build_from_hash(c) }
         operations = Schema::AlterTableOperations.build(@db_tables[table_name], hsh)
         unless operations.empty?
-          alter_table_statement table_name, operations, direction
+          alter_table_statement table_name, operations
           add_blank_line unless last_table
         end
       end
@@ -83,10 +83,10 @@ module Sequel
 
     # Generates an individual alter table statement.
     #
-    def alter_table_statement(table_name, operations, direction)
+    def alter_table_statement(table_name, operations)
       add_line "alter_table #{table_name.inspect} do"
       indent do
-        operations.map {|op| op.__send__(direction) }.compact.each {|op| add_line op }
+        operations.compact.each {|op| add_line op }
       end
       add_line "end"
     end
