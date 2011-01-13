@@ -19,12 +19,12 @@ module Sequel
       def initialize(name, columns, unique=false)
         @name = name.to_sym
         @columns = columns.kind_of?(Array) ? columns.clone : [columns]
-        @unique = unique
+        @unique = !! unique
       end
 
       # Returns true if this index is unique
       def unique?
-        !! @unique
+        @unique
       end
 
       # Returns true if this index has more than one column.

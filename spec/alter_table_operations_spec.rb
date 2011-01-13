@@ -127,4 +127,14 @@ describe "Sequel::Schema::AlterTableOperations.build" do
 
     ops.last.should be_nil
   end
+
+  it "should not output an add_index statement if there is nothing to be done" do
+    table_a = {:name => :example_table,
+      :indexes => {:foo_idx => {:columns => [:foo]}},
+      :columns => []}
+    table_b = {:name => :example_table, :indexes => {:foo_idx => {:columns => [:foo]}}, :columns => []}
+
+    ops = Sequel::Schema::AlterTableOperations.build(table_a,table_b)
+    ops.should == []
+  end
 end

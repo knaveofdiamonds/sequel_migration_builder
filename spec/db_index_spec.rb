@@ -42,6 +42,10 @@ describe Sequel::Schema::DbIndex do
     i1.hash.should == Sequel::Schema::DbIndex.new('foo_idx', :foo, true).hash
     i1.should be_eql(Sequel::Schema::DbIndex.new('foo_idx', :foo, true))
   end
+
+  it "should ensure nil as unique is converted to false" do
+    ([Sequel::Schema::DbIndex.new(:foo_idx, :foo, :unique => nil)] - [Sequel::Schema::DbIndex.new(:foo_idx, :foo, :unique => false)]).should == []
+  end
   
   it "can be built from a hash returned by Sequel::Database#indexes" do
     hsh = {:foo_idx => {:columns => [:foo], :unique => true}}
