@@ -5,3 +5,5 @@ CHANGELOG
 * Switched to using the new style 'change' block in the generated
   migrations, rather than 'up' or 'down'. This bumps the Sequel
   requirement to at least 3.18.0.
+* Changes in indexes are properly handled - not just if the names
+  are different.

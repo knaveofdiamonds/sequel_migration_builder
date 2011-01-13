@@ -25,27 +25,15 @@ module Sequel
           db_columns[name].drop_statement
         end
 
-        db_indexes = db_table[:indexes] || {}
-        new_indexes = new_table[:indexes] || {}
-
-        operations += (db_indexes.keys - new_indexes.keys).map do |index_name|
-          dropped_column = db_indexes[index_name][:columns].size == 1 && dropped_columns.include?(db_indexes[index_name][:columns].first)
-
-          drop_index(index_name, 
-                     db_indexes[index_name][:columns],
-                     ! dropped_column)
+        db_indexes = Schema::DbIndex.build_from_hash(db_table[:indexes] || {})
+        new_indexes = Schema::DbIndex.build_from_hash(new_table[:indexes] || {})
+        
+        operations += (db_indexes - new_indexes).map do |index|
+          index.drop_statement unless index.columns.all? {|c| dropped_columns.include?(c) }
         end
         
-        operations += (new_indexes.keys - db_indexes.keys).map do |index_name|
-          if new_indexes[index_name][:columns].kind_of?(Symbol)
-            dropped_column = dropped_columns.include?(new_indexes[index_name][:columns])
-          else
-            dropped_column = new_indexes[index_name][:columns].size == 1 && dropped_columns.include?(new_indexes[index_name][:columns].first)
-          end
-          
-          add_index(index_name, new_indexes[index_name][:columns],
-                    new_indexes[index_name][:unique])
-          
+        operations += (new_indexes - db_indexes).map do |index|
+          index.add_statement          
         end
         
         operations        
@@ -64,15 +52,6 @@ module Sequel
         result << :change_null_statement    if diffs.include?(:null)
         
         result.map {|statement| new_column.__send__(statement) }
-      end
-      
-      def add_index(name, columns, unique)
-        stmt = "add_index #{columns.inspect}, :name => #{name.inspect}"
-        stmt << ", :unique => true" if unique
-      end
-      
-      def drop_index(name, columns, include_drop_index=true)
-        "drop_index #{columns.inspect}, :name => #{name.inspect}" if include_drop_index
       end
     end
   end

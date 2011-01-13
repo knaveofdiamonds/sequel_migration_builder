@@ -1,5 +1,6 @@
 require 'sequel/extensions/blank'
 require 'sequel/schema/db_column'
+require 'sequel/schema/db_index'
 require 'sequel/schema/db_schema_parser'
 require 'sequel/schema/alter_table_operations'
 
@@ -121,10 +122,8 @@ module Sequel
     def output_indexes(indexes)
       if indexes
         add_blank_line
-        indexes.each do |name, options|
-          opts = options.clone
-          columns = opts.delete(:columns)
-          add_line "index #{columns.inspect}, :name => #{name.to_sym.inspect}#{pretty_hash(opts)}"
+        Schema::DbIndex.build_from_hash(indexes).each do |idx|
+          add_line idx.define_statement
         end
       end
     end

@@ -118,7 +118,7 @@ describe "Sequel::Schema::AlterTableOperations.build" do
     ops.first.should =~ /set_column/
   end
 
-  it "should not output a drop index statement in #up if the index's column is also removed" do
+  it "should not output a drop index statement in #change if the index's column is also removed" do
     table_a = {:name => :example_table,
       :indexes => {:foo_idx => {:columns => [:foo]}},
       :columns => [build_column(:name => :foo, :column_type => :integer)]}
