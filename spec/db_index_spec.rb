@@ -42,14 +42,6 @@ describe Sequel::Schema::DbIndex do
     i1.hash.should == Sequel::Schema::DbIndex.new('foo_idx', :foo, true).hash
     i1.should be_eql(Sequel::Schema::DbIndex.new('foo_idx', :foo, true))
   end
-
-  it "should be the same when indexes have the same name" do
-    i1 = Sequel::Schema::DbIndex.new('foo_idx', :foo, true)
-
-    i1.should be_same(Sequel::Schema::DbIndex.new('foo_idx', :foo, false))
-    i1.should be_same(Sequel::Schema::DbIndex.new('foo_idx', [:foo, :bar], true))
-    i1.should_not be_same(Sequel::Schema::DbIndex.new('foo_bar_idx', :foo, true))
-  end
   
   it "can be built from a hash returned by Sequel::Database#indexes" do
     hsh = {:foo_idx => {:columns => [:foo], :unique => true}}

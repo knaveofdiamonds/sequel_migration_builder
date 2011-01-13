@@ -50,11 +50,6 @@ module Sequel
         "drop_index #{columns_for_statement.inspect}, :name => #{name.inspect}"
       end
 
-      # Returns true if this index has the same name as the other index.
-      def same?(other)
-        name == other.name
-      end
-      
       # Indexes are equal if all their attributes are equal.
       def ==(other)
         other.kind_of?(self.class) &&
