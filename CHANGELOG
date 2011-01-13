@@ -1,0 +1,7 @@
+CHANGELOG
+
+== 0.2.0
+
+* Switched to using the new style 'change' block in the generated
+  migrations, rather than 'up' or 'down'. This bumps the Sequel
+  requirement to at least 3.18.0.
