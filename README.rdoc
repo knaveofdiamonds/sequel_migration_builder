@@ -48,7 +48,7 @@ as a hash. A sample YAML version might look like:
 
 == Requirements
 
-* Sequel 3.12.0 or higher
+* Sequel 3.18.0 or higher
 
 == TODO
 
