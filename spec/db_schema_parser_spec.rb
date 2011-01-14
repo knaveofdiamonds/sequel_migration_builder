@@ -151,4 +151,18 @@ describe "Parsing an enum column" do
 
     lambda { parser.parse_table_schema(schema) }.should_not raise_error(SyntaxError)
   end
+
+  it "should correctly parse elements with escaped '' in them" do
+    parser = Sequel::Schema::DbSchemaParser.for_db(stub(:database))
+    schema = [[:example_column, 
+               { :type => :enum, 
+                 :default => nil, 
+                 :ruby_default => nil, 
+                 :primary_key => false, 
+                 :db_type => "enum('don''t')",
+                 :allow_null => true   }]]
+
+    
+    parser.parse_table_schema(schema).first.elements.should == ["don't"]
+  end
 end
