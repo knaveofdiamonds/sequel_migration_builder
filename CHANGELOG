@@ -3,6 +3,7 @@ CHANGELOG
 == 0.2.2
 
 * Bug fix - decimal defaults are compared correctly.
+* Bug fix - escaped ' in enum elements partially solved.
 
 == 0.2.1
 
