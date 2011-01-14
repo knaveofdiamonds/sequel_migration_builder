@@ -99,6 +99,14 @@ describe Sequel::Schema::DbColumn do
     b.diff(a).should == [:elements].to_set
   end
 
+  it "should cast decimal defaults to the correct number" do
+    a = Sequel::Schema::DbColumn.new(:foo, :decimal, true, '0.00', true, [4,2], nil)
+    b = Sequel::Schema::DbColumn.new(:foo, :decimal, true, 0, true, [4,2], nil)
+
+    a.diff(b).should == Set.new
+    b.diff(a).should == Set.new
+  end
+  
   it "should be buildable from a Hash" do
     Sequel::Schema::DbColumn.build_from_hash(:name => "foo", 
                                        :column_type => "integer").column_type.should == "integer"

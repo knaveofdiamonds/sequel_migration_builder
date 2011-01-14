@@ -1,5 +1,9 @@
 CHANGELOG
 
+== 0.2.2
+
+* Bug fix - decimal defaults are compared correctly.
+
 == 0.2.1
 
 * Bug fix - cast :unique => nil to false in DbIndex.

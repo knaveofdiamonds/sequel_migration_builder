@@ -1,4 +1,5 @@
 require 'set'
+require 'bigdecimal'
 
 module Sequel
   module Schema
@@ -26,6 +27,11 @@ module Sequel
         self.new *members.map {|key| attrs[key] || attrs[key.to_sym] }
       end
 
+      def initialize(*args)
+        super
+        normalize_default
+      end
+      
       # Returns a Sequel migration statement to define a column in a
       # create_table block.
       #
@@ -147,6 +153,12 @@ module Sequel
         opts.render
       end
 
+      def normalize_default
+        if DECIMAL_TYPES.include?(column_type) && ! self[:default].nil?
+          self.default = BigDecimal(self[:default].to_s)
+        end
+      end
+      
       # Formats column options in a Sequel migration
       class OptionBuilder
         def initialize
