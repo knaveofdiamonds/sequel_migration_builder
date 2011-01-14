@@ -43,7 +43,7 @@ module Sequel
         db_schema.map do |column|
           type = parse_type(column.last[:db_type])
           DbColumn.build_from_hash(:name        => column.first,
-                                   :default     => column.last[:ruby_default],
+                                   :default     => column.last[:ruby_default] || column.last[:default],
                                    :null        => column.last[:allow_null],
                                    :column_type => type,
                                    :unsigned    => extract_unsigned(column.last[:db_type], type),
