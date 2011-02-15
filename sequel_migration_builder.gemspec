@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{sequel_migration_builder}
-  s.version = "0.2.2"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Roland Swingler"]
-  s.date = %q{2011-01-14}
+  s.date = %q{2011-02-15}
   s.description = %q{Build Sequel Migrations based on the differences between two schemas}
   s.email = %q{roland.swingler@gmail.com}
   s.extra_rdoc_files = [
@@ -57,14 +57,14 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<sequel>, [">= 3.18.0"])
+      s.add_runtime_dependency(%q<sequel>, [">= 3.20.0"])
       s.add_development_dependency(%q<rspec>, [">= 1.2.9"])
     else
-      s.add_dependency(%q<sequel>, [">= 3.18.0"])
+      s.add_dependency(%q<sequel>, [">= 3.20.0"])
       s.add_dependency(%q<rspec>, [">= 1.2.9"])
     end
   else
-    s.add_dependency(%q<sequel>, [">= 3.18.0"])
+    s.add_dependency(%q<sequel>, [">= 3.20.0"])
     s.add_dependency(%q<rspec>, [">= 1.2.9"])
   end
 end
