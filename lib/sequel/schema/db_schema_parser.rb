@@ -29,7 +29,7 @@ module Sequel
       def parse_db_schema
         @db.tables.inject({}) do |result, table_name|
           result[table_name] = {
-            :indexes => @db.indexes(table_name),
+            :indexes => @db.indexes(table_name, :partial => true),
             :columns => parse_table_schema(@db.schema(table_name))
           }
           result
