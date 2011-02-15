@@ -124,7 +124,7 @@ END
       }
       @mock_db = mock(:database)
       @mock_db.should_receive(:tables).at_least(:once).and_return([:example_table])
-      @mock_db.should_receive(:indexes).with(:example_table).and_return({})
+      @mock_db.should_receive(:indexes).with(:example_table, :partial => true).and_return({})
       @mock_db.should_receive(:schema).with(:example_table).and_return([[:foo, {:type => :integer, :db_type => "smallint(5) unsigned", :allow_null => true, :ruby_default => 10}]])
 
     end
