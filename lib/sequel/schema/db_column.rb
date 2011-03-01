@@ -167,7 +167,13 @@ module Sequel
         
         # Sets column option name to a value.
         def set(name, value)
-          @opts << "#{name.inspect} => #{value.inspect}"
+          output_value = if value.kind_of?(BigDecimal)
+                           "BigDecimal.new('#{value.to_f.to_s}')"
+                         else
+                           value.inspect
+                         end
+
+          @opts << "#{name.inspect} => #{output_value}"
         end
         
         # Renders the column option hash in a pretty format.

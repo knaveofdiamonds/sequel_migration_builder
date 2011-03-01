@@ -106,6 +106,11 @@ describe Sequel::Schema::DbColumn do
     a.diff(b).should == Set.new
     b.diff(a).should == Set.new
   end
+
+  it "should output BigDecimal correctly in a  #define_statement" do
+    Sequel::Schema::DbColumn.new(:foo, :decimal, false, '1.1', true, [4,2], nil).
+      define_statement.should == "decimal :foo, :null => false, :default => BigDecimal.new('1.1'), :unsigned => true, :size => [4, 2]"
+  end
   
   it "should be buildable from a Hash" do
     Sequel::Schema::DbColumn.build_from_hash(:name => "foo", 
