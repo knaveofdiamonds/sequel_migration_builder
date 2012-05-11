@@ -71,6 +71,11 @@ describe "A hash in the array returned by Sequel::Schema::DbSchemaParser#parse_t
     @parser.parse_table_schema(@schema).first.size.should == [14,5]
   end
 
+  it "should contain a :size attribute for binary columns" do
+    set_db_type "binary(16)", :blob
+    @parser.parse_table_schema(@schema).first.size.should == 16
+  end
+  
   it "should contain :unsigned false if a numeric column is not unsigned" do
     set_db_type "int(10)"
     @parser.parse_table_schema(@schema).first.unsigned.should == false

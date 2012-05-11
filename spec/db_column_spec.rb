@@ -10,11 +10,11 @@ describe Sequel::Schema::DbColumn do
     @column.define_statement.should == "integer :foo, :null => false, :default => 10, :unsigned => true, :size => 10"
   end
 
-  it "should return a primary_key invocation if single_primary_key is set" do
+  it "should return a primary_key invocation if single_primary_key is set and the column is an integer" do
     @column.single_primary_key = true
     @column.define_statement.should == "primary_key :foo, :type => :integer, :null => false, :default => 10, :unsigned => true, :size => 10"
   end
-  
+
   it "should return a #drop_statement" do
     @column.drop_statement.should == "drop_column :foo"
   end

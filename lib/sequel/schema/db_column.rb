@@ -91,6 +91,10 @@ module Sequel
         }.select {|attribute, method| __send__(method, attribute, other) }.map {|a| a.first }.to_set
       end
 
+      def integer_type?
+        INTEGER_TYPES.include?(column_type)
+      end
+      
       # Returns true if this column is numeric.
       #
       def numeric?

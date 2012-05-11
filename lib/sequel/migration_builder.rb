@@ -100,7 +100,7 @@ module Sequel
       indent do
         output_columns(table[:columns], table[:primary_key])
         output_indexes(table[:indexes])
-        output_composite_primary_key(table[:primary_key])
+        output_primary_key(table)
       end
       add_line "end"
     end
@@ -112,7 +112,7 @@ module Sequel
     def output_columns(columns, primary_key)
       columns.each do |c| 
         column = Schema::DbColumn.build_from_hash(c)
-        if primary_key && primary_key.size == 1 && primary_key.first == column.name
+        if inline_primary_key?(primary_key, column)
           column.single_primary_key = true
         end
         add_line column.define_statement
@@ -128,8 +128,13 @@ module Sequel
       end
     end
 
-    def output_composite_primary_key(primary_key)
-      if primary_key && primary_key.size > 1
+    def output_primary_key(table)
+      primary_key = table[:primary_key]
+      primary_key_already_output = table[:columns].any? do |c| 
+        inline_primary_key?(primary_key, Schema::DbColumn.build_from_hash(c))
+      end
+
+      if primary_key && ! primary_key_already_output
         add_blank_line
         add_line "primary_key #{primary_key.inspect}"
       end
@@ -137,6 +142,13 @@ module Sequel
 
     private
 
+    def inline_primary_key?(primary_key, column)
+      primary_key &&
+        primary_key.size == 1 &&
+        primary_key.first == column.name &&
+        column.integer_type?
+    end
+    
     attr_reader :result
 
     def each_table(table_names, tables)

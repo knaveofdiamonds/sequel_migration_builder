@@ -78,6 +78,27 @@ END
       should == expected.strip
   end
 
+  it "should add the non-integer primary key of the table" do
+    mock_db = mock(:database)
+    mock_db.should_receive(:tables).at_least(:once).and_return([])
+    table = {
+      :primary_key => :foo,
+      :columns => [{:name => :foo, :column_type => :binary}, {:name => :bar, :column_type => :varchar}]
+    }
+
+    expected = <<-END
+create_table :example_table do
+  binary :foo, :null => false
+  varchar :bar, :null => false
+
+  primary_key [:foo]
+end
+END
+
+    Sequel::MigrationBuilder.new(mock_db).create_table_statement(:example_table, table).join("\n").
+      should == expected.strip
+  end
+  
   it "should add the table options do the create_table statement" do
     mock_db = mock(:database)
     mock_db.should_receive(:tables).at_least(:once).and_return([])
