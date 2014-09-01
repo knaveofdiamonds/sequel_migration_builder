@@ -13,12 +13,16 @@ module Sequel
 
     # Creates a migration builder for the given database.
     #
-    def initialize(db)
+    def initialize(db, options={})
       @db = db
       @db_tables = Schema::DbSchemaParser.for_db(db).parse_db_schema
       @db_table_names = @db.tables
       @indent = 0
       @result = []
+      @separate_alter_table_statements = !!options[:separate_alter_table_statements]
+      # Columns are only added and dropped, never altered. This helps
+      # us support Redshift.
+      @immutable_columns = !!options[:immutable_columns]
     end
 
     # Generates a string of ruby code to define a sequel
@@ -74,10 +78,19 @@ module Sequel
       each_table(current_table_names, tables) do |table_name, table, last_table|
         hsh = table.dup
         hsh[:columns] = hsh[:columns].map {|c| Schema::DbColumn.build_from_hash(c) }
-        operations = Schema::AlterTableOperations.build(@db_tables[table_name], hsh)
+        operations = Schema::AlterTableOperations.
+          build(@db_tables[table_name], hsh, :immutable_columns => @immutable_columns)
         unless operations.empty?
-          alter_table_statement table_name, operations
-          add_blank_line unless last_table
+          all_operations = if @separate_alter_table_statements
+                             operations.map {|o| [o] }
+                           else
+                             [operations]
+                           end
+
+          all_operations.each_with_index do |o, i|
+            alter_table_statement table_name, o
+            add_blank_line unless last_table && i + 1 == all_operations.size
+          end
         end
       end
     end

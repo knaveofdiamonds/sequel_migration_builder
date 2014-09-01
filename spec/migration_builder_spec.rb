@@ -164,6 +164,51 @@ END
       Sequel::MigrationBuilder.new(@mock_db).
         generate_migration_body(@tables).join("\n").should == expected.strip
     end
+
+    it "should return separate alter table statements when option is set" do
+      expected = <<-END
+change do
+  alter_table :example_table do
+    set_column_type :foo, :integer, :default => nil
+  end
+
+  alter_table :example_table do
+    set_column_allow_null :foo, false
+  end
+
+  alter_table :example_table do
+    add_column :bar, :varchar, :null => false
+  end
+
+  alter_table :example_table do
+    add_index :foo, :name => :foo_index, :unique => true
+  end
+end
+END
+      Sequel::MigrationBuilder.new(@mock_db, :separate_alter_table_statements => true).
+        generate_migration_body(@tables).join("\n").should == expected.strip
+    end
+
+    it "should drop and add columns instead of changing them if immutable_columns is set" do
+      tables = { :example_table =>
+        { :indexes => nil,
+          :columns => [{:name => :foo, :column_type => :integer}] }
+      }
+
+      expected = <<-END
+change do
+  alter_table :example_table do
+    drop_column :foo
+  end
+
+  alter_table :example_table do
+    add_column :foo, :integer, :null => false
+  end
+end
+END
+      Sequel::MigrationBuilder.new(@mock_db, :separate_alter_table_statements => true, :immutable_columns => true).
+        generate_migration_body(tables).join("\n").should == expected.strip
+    end
   end
 
   it "should drop the table if the table exists in the database but not the table hash" do

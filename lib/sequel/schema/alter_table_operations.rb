@@ -1,11 +1,15 @@
 module Sequel
   module Schema
     class AlterTableOperations
+      def initialize(options={})
+        @immutable_columns = options[:immutable_columns]
+      end
+
       # Returns an array of operations to change the current database
       # table to be like the defined table.
       #
-      def self.build(db_table, new_table)
-        new.build(db_table, new_table)
+      def self.build(db_table, new_table, options={})
+        new(options).build(db_table, new_table)
       end
 
       def build(db_table, new_table)
@@ -46,10 +50,16 @@ module Sequel
         result = []
         
         diffs = db_column.diff(new_column)
-        result << :change_type_statement    if [:elements, :column_type, :size, :unsigned].any? {|sym| diffs.include?(sym) }
-        # only need to explicitly set the default if we're not changing the column type.
-        result << :change_default_statement if diffs.include?(:default) && result.empty?
-        result << :change_null_statement    if diffs.include?(:null)
+
+        if @immutable_columns && !diffs.empty?
+          result << :drop_statement
+          result << :add_statement
+        else
+          result << :change_type_statement    if [:elements, :column_type, :size, :unsigned].any? {|sym| diffs.include?(sym) }
+          # only need to explicitly set the default if we're not changing the column type.
+          result << :change_default_statement if diffs.include?(:default) && result.empty?
+          result << :change_null_statement    if diffs.include?(:null)
+        end
         
         result.map {|statement| new_column.__send__(statement) }
       end
