@@ -2,14 +2,14 @@ require File.dirname(__FILE__) + "/spec_helper"
 
 describe "Sequel::Schema::DbSchemaParser.for_db" do
   it "should return a DbSchemaParser" do
-    Sequel::Schema::DbSchemaParser.for_db(stub(:database)).should \
+    Sequel::Schema::DbSchemaParser.for_db(double(:database)).should \
       be_kind_of(Sequel::Schema::DbSchemaParser)
   end
 end
 
 describe "A hash in the array returned by Sequel::Schema::DbSchemaParser#parse_table_schema" do
   before :each do
-    @parser = Sequel::Schema::DbSchemaParser.for_db(stub(:database))
+    @parser = Sequel::Schema::DbSchemaParser.for_db(double(:database))
     @schema = [[:example_column, 
                 { :type => :integer, 
                   :default => "1", 
@@ -116,7 +116,7 @@ end
 
 describe "Sequel::Schema::DbSchemaParser#parse_db_schema" do
   it "should extract a list of table definitions from a database" do
-    mock_db = mock(:db)
+    mock_db = double(:db)
     mock_db.should_receive(:tables).at_least(:once).and_return([:table1])
     mock_db.should_receive(:schema).with(:table1).and_return([])
     mock_db.should_receive(:indexes).with(:table1, :partial => true)
@@ -130,7 +130,7 @@ end
 
 describe "Parsing a text column" do
   it "should not raise an error because it does not have a size" do
-    parser = Sequel::Schema::DbSchemaParser.for_db(stub(:database))
+    parser = Sequel::Schema::DbSchemaParser.for_db(double(:database))
     schema = [[:example_column, 
                { :type => :string, 
                  :default => nil, 
@@ -145,7 +145,7 @@ end
 
 describe "Parsing an enum column" do
   it "should not raise an error when enum values contains brackets" do
-    parser = Sequel::Schema::DbSchemaParser.for_db(stub(:database))
+    parser = Sequel::Schema::DbSchemaParser.for_db(double(:database))
     schema = [[:example_column, 
                { :type => :enum, 
                  :default => nil, 
@@ -154,11 +154,11 @@ describe "Parsing an enum column" do
                  :db_type => "enum('foo (bar)', 'baz')",
                  :allow_null => true   }]]
 
-    lambda { parser.parse_table_schema(schema) }.should_not raise_error(SyntaxError)
+    lambda { parser.parse_table_schema(schema) }.should_not raise_error
   end
 
   it "should correctly parse elements with escaped '' in them" do
-    parser = Sequel::Schema::DbSchemaParser.for_db(stub(:database))
+    parser = Sequel::Schema::DbSchemaParser.for_db(double(:database))
     schema = [[:example_column, 
                { :type => :enum, 
                  :default => nil, 

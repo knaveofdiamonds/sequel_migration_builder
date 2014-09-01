@@ -24,7 +24,7 @@ module Sequel
       # can be strings or symbols.
       #
       def self.build_from_hash(attrs={})
-        self.new *members.map {|key| attrs[key] || attrs[key.to_sym] }
+        self.new *members.map {|key| attrs[key.to_s] || attrs[key.to_sym] }
       end
 
       def initialize(*args)

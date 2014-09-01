@@ -114,8 +114,8 @@ describe Sequel::Schema::DbColumn do
   
   it "should be buildable from a Hash" do
     Sequel::Schema::DbColumn.build_from_hash(:name => "foo", 
-                                       :column_type => "integer").column_type.should == "integer"
+                                             :column_type => "integer").column_type.should == "integer"
     Sequel::Schema::DbColumn.build_from_hash('name' => "foo", 
-                                       'column_type' => "integer").name.should == "foo"
+                                             'column_type' => "integer").name.should == "foo"
   end
 end

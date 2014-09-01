@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + "/spec_helper"
 describe Sequel::MigrationBuilder do
   
   it "should return nil if the table hash is empty and the database has no tables" do
-    mock_db = mock(:database)
+    mock_db = double(:database)
     mock_db.should_receive(:tables).at_least(:once).and_return([])
     Sequel::MigrationBuilder.new(mock_db).generate_migration({}).should be_nil
   end
@@ -24,7 +24,7 @@ Sequel.migration do
 end
 END
     
-    mock_db = mock(:database)
+    mock_db = double(:database)
     mock_db.should_receive(:tables).at_least(:once).and_return([])
     Sequel::MigrationBuilder.new(mock_db).generate_migration(tables).should == expected
   end
@@ -54,13 +54,13 @@ Sequel.migration do
 end
 END
     
-    mock_db = mock(:database)
+    mock_db = double(:database)
     mock_db.should_receive(:tables).at_least(:once).and_return([])
     Sequel::MigrationBuilder.new(mock_db).generate_migration(tables).should == expected
   end
 
   it "should add the primary key of the table" do
-    mock_db = mock(:database)
+    mock_db = double(:database)
     mock_db.should_receive(:tables).at_least(:once).and_return([])
     table = {
       :primary_key => :foo,
@@ -79,7 +79,7 @@ END
   end
 
   it "should add the non-integer primary key of the table" do
-    mock_db = mock(:database)
+    mock_db = double(:database)
     mock_db.should_receive(:tables).at_least(:once).and_return([])
     table = {
       :primary_key => :foo,
@@ -100,7 +100,7 @@ END
   end
   
   it "should add the table options do the create_table statement" do
-    mock_db = mock(:database)
+    mock_db = double(:database)
     mock_db.should_receive(:tables).at_least(:once).and_return([])
     table = {
       :table_options => {:engine => "myisam"},
@@ -118,7 +118,7 @@ END
   end
 
   it "should add indexes to the create_table statement" do
-    mock_db = mock(:database)
+    mock_db = double(:database)
     mock_db.should_receive(:tables).at_least(:once).and_return([])
     table = {
       :indexes => {:foo_index => {:columns => :foo, :unique => true}},
@@ -143,7 +143,7 @@ END
         { :indexes => {:foo_index => {:columns => :foo, :unique => true}},
           :columns => [{:name => :foo, :column_type => :integer}, {:name => :bar, :column_type => :varchar}]}
       }
-      @mock_db = mock(:database)
+      @mock_db = double(:database)
       @mock_db.should_receive(:tables).at_least(:once).and_return([:example_table])
       @mock_db.should_receive(:indexes).with(:example_table, :partial => true).and_return({})
       @mock_db.should_receive(:schema).with(:example_table).and_return([[:foo, {:type => :integer, :db_type => "smallint(5) unsigned", :allow_null => true, :ruby_default => 10}]])
@@ -168,7 +168,7 @@ END
 
   it "should drop the table if the table exists in the database but not the table hash" do
     pending # Deal with in a later version.
-    mock_db = mock(:database)
+    mock_db = double(:database)
     mock_db.should_receive(:tables).at_least(:once).and_return([:example_table])
     
     expected = <<-END
