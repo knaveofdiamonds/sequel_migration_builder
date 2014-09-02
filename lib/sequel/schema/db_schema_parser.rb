@@ -43,7 +43,7 @@ module Sequel
         db_schema.map do |column|
           type = parse_type(column.last[:db_type])
           DbColumn.build_from_hash(:name        => column.first,
-                                   :default     => column.last[:ruby_default] || column.last[:default],
+                                   :default     => extract_default(column),
                                    :null        => column.last[:allow_null],
                                    :column_type => type,
                                    :unsigned    => extract_unsigned(column.last[:db_type], type),
@@ -73,11 +73,20 @@ module Sequel
         case type
         when /^int/          then :integer
         when /^tinyint\(1\)/ then :boolean
+        when /^character varying/ then :varchar
+        when /^character/ then :char
+        when /^timestamp/ then :timestamp
+        when /^numeric\(\d+,\d+\)/ then :decimal
         when /^([^(]+)/      then $1.to_sym
         end
       end
 
       private
+
+      def extract_default(column)
+        default = column.last[:ruby_default] || column.last[:default]
+        default =~ /^"identity/ ? nil : default
+      end
 
       def extract_unsigned(db_type_string, type)
         return unless DbColumn::NUMERIC_TYPES.include?(type)

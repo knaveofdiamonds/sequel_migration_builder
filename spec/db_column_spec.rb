@@ -7,115 +7,114 @@ describe Sequel::Schema::DbColumn do
   end
 
   it "should return a #define_statement" do
-    @column.define_statement.should == "integer :foo, :null => false, :default => 10, :unsigned => true, :size => 10"
+    expect(@column.define_statement).to eql("integer :foo, :null => false, :default => 10, :unsigned => true, :size => 10")
   end
 
   it "should return a primary_key invocation if single_primary_key is set and the column is an integer" do
     @column.single_primary_key = true
-    @column.define_statement.should == "primary_key :foo, :type => :integer, :null => false, :default => 10, :unsigned => true, :size => 10"
+    expect(@column.define_statement).to eql("primary_key :foo, :type => :integer, :null => false, :default => 10, :unsigned => true, :size => 10")
   end
 
   it "should return a #drop_statement" do
-    @column.drop_statement.should == "drop_column :foo"
+    expect(@column.drop_statement).to eql("drop_column :foo")
   end
 
   it "should return an #add_statement" do
-    @column.add_statement.should == "add_column :foo, :integer, :null => false, :default => 10, :unsigned => true, :size => 10"
+    expect(@column.add_statement).to eql("add_column :foo, :integer, :null => false, :default => 10, :unsigned => true, :size => 10")
   end
 
   it "should return a #change_null statement" do
-    @column.change_null_statement.should == "set_column_allow_null :foo, false"
+    expect(@column.change_null_statement).to eql("set_column_allow_null :foo, false")
   end
 
   it "should return a #change_default statement" do
-    @column.change_default_statement.should == "set_column_default :foo, 10"
+    expect(@column.change_default_statement).to eql("set_column_default :foo, 10")
   end
 
   it "should return a #change_type statement" do
-    @column.change_type_statement.should == "set_column_type :foo, :integer, :default => 10, :unsigned => true, :size => 10"
+    expect(@column.change_type_statement).to eql("set_column_type :foo, :integer, :default => 10, :unsigned => true, :size => 10")
   end
 
   it "should be diffable with another DbColumn" do
     other = Sequel::Schema::DbColumn.new(:foo, :smallint, false, 10, true, 10, nil)
-    @column.diff(other).should == [:column_type].to_set
+    expect(@column.diff(other)).to eql([:column_type].to_set)
 
     other = Sequel::Schema::DbColumn.new(:foo, :integer, true, 11, true, 10, nil)
-    @column.diff(other).should == [:null, :default].to_set
+    expect(@column.diff(other)).to eql([:null, :default].to_set)
   end
 
   it "should not consider allowing null being nil different from false" do
     a = Sequel::Schema::DbColumn.new(:foo, :smallint, false, 10, true, 10, nil)
     b = Sequel::Schema::DbColumn.new(:foo, :smallint, nil, 10, true, 10, nil)
-    a.diff(b).should be_empty
-    b.diff(a).should be_empty
+    expect(a.diff(b)).to be_empty
+    expect(b.diff(a)).to be_empty
   end
 
   it "should not consider size to be different if one of the sizes is nil" do
     a = Sequel::Schema::DbColumn.new(:foo, :smallint, false, 10, true, 10, nil)
     b = Sequel::Schema::DbColumn.new(:foo, :smallint, false, 10, true, nil, nil)
-    a.diff(b).should be_empty
-    b.diff(a).should be_empty
+    expect(a.diff(b)).to be_empty
+    expect(b.diff(a)).to be_empty
   end
 
   it "should not consider 0 to be different from null if the column does not allow nulls" do
     a = Sequel::Schema::DbColumn.new(:foo, :smallint, false, 0, true, 10, nil)
     b = Sequel::Schema::DbColumn.new(:foo, :smallint, false, nil, true, nil, nil)
-    a.diff(b).should be_empty
-    b.diff(a).should be_empty
+    expect(a.diff(b)).to be_empty
+    expect(b.diff(a)).to be_empty
   end
 
   it "should consider 0 to be different from null if the column does allow nulls" do
     a = Sequel::Schema::DbColumn.new(:foo, :smallint, true, 0, true, 10, nil)
     b = Sequel::Schema::DbColumn.new(:foo, :smallint, true, nil, true, nil, nil)
-    a.diff(b).should == [:default].to_set
-    b.diff(a).should == [:default].to_set
+    expect(a.diff(b)).to eql([:default].to_set)
+    expect(b.diff(a)).to eql([:default].to_set)
   end
 
   it "should consider 1 to be different from null" do
     a = Sequel::Schema::DbColumn.new(:foo, :smallint, false, 1, true, 10, nil)
     b = Sequel::Schema::DbColumn.new(:foo, :smallint, false, nil, true, nil, nil)
-    a.diff(b).should == [:default].to_set
-    b.diff(a).should == [:default].to_set
+    expect(a.diff(b)).to eql([:default].to_set)
+    expect(b.diff(a)).to eql([:default].to_set)
   end
 
   it "should not consider '' to be different from null if the column does not allow nulls" do
     a = Sequel::Schema::DbColumn.new(:foo, :varchar, false, '', true, 10, nil)
     b = Sequel::Schema::DbColumn.new(:foo, :varchar, false, nil, true, nil, nil)
-    a.diff(b).should be_empty
-    b.diff(a).should be_empty
+    expect(a.diff(b)).to be_empty
+    expect(b.diff(a)).to be_empty
   end
 
   it "should consider '' to be different from null if the column allows null" do
     a = Sequel::Schema::DbColumn.new(:foo, :varchar, true, '', true, 10, nil)
     b = Sequel::Schema::DbColumn.new(:foo, :varchar, true, nil, true, nil, nil)
-    a.diff(b).should == [:default].to_set
-    b.diff(a).should == [:default].to_set
+    expect(a.diff(b)).to eql([:default].to_set)
+    expect(b.diff(a)).to eql([:default].to_set)
   end
 
   it "should consider columns with different elements to be different" do
     a = Sequel::Schema::DbColumn.new(:foo, :enum, true, nil, true, nil, ["A"])
     b = Sequel::Schema::DbColumn.new(:foo, :enum, true, nil, true, nil, ["A", "B"])
-    a.diff(b).should == [:elements].to_set
-    b.diff(a).should == [:elements].to_set
+    expect(a.diff(b)).to eql([:elements].to_set)
+    expect(b.diff(a)).to eql([:elements].to_set)
   end
 
   it "should cast decimal defaults to the correct number" do
     a = Sequel::Schema::DbColumn.new(:foo, :decimal, true, '0.00', true, [4,2], nil)
     b = Sequel::Schema::DbColumn.new(:foo, :decimal, true, 0, true, [4,2], nil)
 
-    a.diff(b).should == Set.new
-    b.diff(a).should == Set.new
+    expect(a.diff(b)).to eql(Set.new)
+    expect(b.diff(a)).to eql(Set.new)
   end
 
   it "should output BigDecimal correctly in a  #define_statement" do
-    Sequel::Schema::DbColumn.new(:foo, :decimal, false, '1.1', true, [4,2], nil).
-      define_statement.should == "decimal :foo, :null => false, :default => BigDecimal.new('1.1'), :unsigned => true, :size => [4, 2]"
+    expect(Sequel::Schema::DbColumn.new(:foo, :decimal, false, '1.1', true, [4,2], nil).define_statement).to eql("decimal :foo, :null => false, :default => BigDecimal.new('1.1'), :unsigned => true, :size => [4, 2]")
   end
   
   it "should be buildable from a Hash" do
-    Sequel::Schema::DbColumn.build_from_hash(:name => "foo", 
-                                             :column_type => "integer").column_type.should == "integer"
-    Sequel::Schema::DbColumn.build_from_hash('name' => "foo", 
-                                             'column_type' => "integer").name.should == "foo"
+    expect(Sequel::Schema::DbColumn.build_from_hash(:name => "foo", 
+                                             :column_type => "integer").column_type).to eql("integer")
+    expect(Sequel::Schema::DbColumn.build_from_hash('name' => "foo", 
+                                             'column_type' => "integer").name).to eql("foo")
   end
 end

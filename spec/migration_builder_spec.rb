@@ -4,8 +4,8 @@ describe Sequel::MigrationBuilder do
   
   it "should return nil if the table hash is empty and the database has no tables" do
     mock_db = double(:database)
-    mock_db.should_receive(:tables).at_least(:once).and_return([])
-    Sequel::MigrationBuilder.new(mock_db).generate_migration({}).should be_nil
+    expect(mock_db).to receive(:tables).at_least(:once).and_return([])
+    expect(Sequel::MigrationBuilder.new(mock_db).generate_migration({})).to be_nil
   end
 
   it "should produce a simple migration string given a database connection and a hash of tables" do
@@ -25,8 +25,8 @@ end
 END
     
     mock_db = double(:database)
-    mock_db.should_receive(:tables).at_least(:once).and_return([])
-    Sequel::MigrationBuilder.new(mock_db).generate_migration(tables).should == expected
+    expect(mock_db).to receive(:tables).at_least(:once).and_return([])
+    expect(Sequel::MigrationBuilder.new(mock_db).generate_migration(tables)).to eql(expected)
   end
 
   it "should produce statements for multiple new tables" do
@@ -55,13 +55,13 @@ end
 END
     
     mock_db = double(:database)
-    mock_db.should_receive(:tables).at_least(:once).and_return([])
-    Sequel::MigrationBuilder.new(mock_db).generate_migration(tables).should == expected
+    expect(mock_db).to receive(:tables).at_least(:once).and_return([])
+    expect(Sequel::MigrationBuilder.new(mock_db).generate_migration(tables)).to eql(expected)
   end
 
   it "should add the primary key of the table" do
     mock_db = double(:database)
-    mock_db.should_receive(:tables).at_least(:once).and_return([])
+    expect(mock_db).to receive(:tables).at_least(:once).and_return([])
     table = {
       :primary_key => :foo,
       :columns => [{:name => :foo, :column_type => :integer}, {:name => :bar, :column_type => :varchar}]
@@ -74,13 +74,12 @@ create_table :example_table do
 end
 END
 
-    Sequel::MigrationBuilder.new(mock_db).create_table_statement(:example_table, table).join("\n").
-      should == expected.strip
+    expect(Sequel::MigrationBuilder.new(mock_db).create_table_statement(:example_table, table).join("\n")).to eql(expected.strip)
   end
 
   it "should add the non-integer primary key of the table" do
     mock_db = double(:database)
-    mock_db.should_receive(:tables).at_least(:once).and_return([])
+    expect(mock_db).to receive(:tables).at_least(:once).and_return([])
     table = {
       :primary_key => :foo,
       :columns => [{:name => :foo, :column_type => :binary}, {:name => :bar, :column_type => :varchar}]
@@ -95,13 +94,12 @@ create_table :example_table do
 end
 END
 
-    Sequel::MigrationBuilder.new(mock_db).create_table_statement(:example_table, table).join("\n").
-      should == expected.strip
+    expect(Sequel::MigrationBuilder.new(mock_db).create_table_statement(:example_table, table).join("\n")).to eql(expected.strip)
   end
   
   it "should add the table options do the create_table statement" do
     mock_db = double(:database)
-    mock_db.should_receive(:tables).at_least(:once).and_return([])
+    expect(mock_db).to receive(:tables).at_least(:once).and_return([])
     table = {
       :table_options => {:engine => "myisam"},
       :columns => [{:name => :foo, :column_type => :integer}]
@@ -113,13 +111,12 @@ create_table :example_table, :engine => "myisam" do
 end
 END
 
-    Sequel::MigrationBuilder.new(mock_db).create_table_statement(:example_table, table).join("\n").
-      should == expected.strip
+    expect(Sequel::MigrationBuilder.new(mock_db).create_table_statement(:example_table, table).join("\n")).to eql(expected.strip)
   end
 
   it "should add indexes to the create_table statement" do
     mock_db = double(:database)
-    mock_db.should_receive(:tables).at_least(:once).and_return([])
+    expect(mock_db).to receive(:tables).at_least(:once).and_return([])
     table = {
       :indexes => {:foo_index => {:columns => :foo, :unique => true}},
       :columns => [{:name => :foo, :column_type => :integer}]
@@ -133,8 +130,12 @@ create_table :example_table do
 end
 END
 
-    Sequel::MigrationBuilder.new(mock_db).create_table_statement(:example_table, table).join("\n").
-      should == expected.strip
+    result = Sequel::MigrationBuilder.
+      new(mock_db).
+      create_table_statement(:example_table, table).
+      join("\n")
+
+    expect(result).to eql(expected.strip)
   end
   
   context "when a table needs to be altered" do
@@ -144,9 +145,9 @@ END
           :columns => [{:name => :foo, :column_type => :integer}, {:name => :bar, :column_type => :varchar}]}
       }
       @mock_db = double(:database)
-      @mock_db.should_receive(:tables).at_least(:once).and_return([:example_table])
-      @mock_db.should_receive(:indexes).with(:example_table, :partial => true).and_return({})
-      @mock_db.should_receive(:schema).with(:example_table).and_return([[:foo, {:type => :integer, :db_type => "smallint(5) unsigned", :allow_null => true, :ruby_default => 10}]])
+      expect(@mock_db).to receive(:tables).at_least(:once).and_return([:example_table])
+      expect(@mock_db).to receive(:indexes).with(:example_table, :partial => true).and_return({})
+      expect(@mock_db).to receive(:schema).with(:example_table).and_return([[:foo, {:type => :integer, :db_type => "smallint(5) unsigned", :allow_null => true, :ruby_default => 10}]])
 
     end
 
@@ -161,8 +162,7 @@ change do
   end
 end
 END
-      Sequel::MigrationBuilder.new(@mock_db).
-        generate_migration_body(@tables).join("\n").should == expected.strip
+      expect(Sequel::MigrationBuilder.new(@mock_db).generate_migration_body(@tables).join("\n")).to eql(expected.strip)
     end
 
     it "should return separate alter table statements when option is set" do
@@ -185,8 +185,7 @@ change do
   end
 end
 END
-      Sequel::MigrationBuilder.new(@mock_db, :separate_alter_table_statements => true).
-        generate_migration_body(@tables).join("\n").should == expected.strip
+      expect(Sequel::MigrationBuilder.new(@mock_db, :separate_alter_table_statements => true).generate_migration_body(@tables).join("\n")).to eql(expected.strip)
     end
 
     it "should drop and add columns instead of changing them if immutable_columns is set" do
@@ -206,21 +205,7 @@ change do
   end
 end
 END
-      Sequel::MigrationBuilder.new(@mock_db, :separate_alter_table_statements => true, :immutable_columns => true).
-        generate_migration_body(tables).join("\n").should == expected.strip
+      expect(Sequel::MigrationBuilder.new(@mock_db, :separate_alter_table_statements => true, :immutable_columns => true).generate_migration_body(tables).join("\n")).to eql(expected.strip)
     end
-  end
-
-  it "should drop the table if the table exists in the database but not the table hash" do
-    pending # Deal with in a later version.
-    mock_db = double(:database)
-    mock_db.should_receive(:tables).at_least(:once).and_return([:example_table])
-    
-    expected = <<-END
-change do
-  drop_table :example_table
-end
-END
-    Sequel::MigrationBuilder.new(mock_db).generate_up({}).join("\n").should == expected
   end
 end
