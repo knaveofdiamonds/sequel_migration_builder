@@ -84,8 +84,12 @@ module Sequel
       private
 
       def extract_default(column)
-        default = column.last[:ruby_default] || column.last[:default]
-        default =~ /^"identity/ ? nil : default
+        if column.last[:ruby_default].nil?
+          default = column.last[:default]
+          default =~ /^"identity/ ? nil : default
+        else
+          default = column.last[:ruby_default]
+        end
       end
 
       def extract_unsigned(db_type_string, type)

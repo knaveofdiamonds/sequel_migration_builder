@@ -26,6 +26,11 @@ describe "A hash in the array returned by Sequel::Schema::DbSchemaParser#parse_t
   it "should contain the ruby_default as the :default" do
     expect(@parser.parse_table_schema(@schema).first.default).to eql(1)
   end
+
+  it "should contain the ruby_default as the :default when that default is false" do
+    @schema.first.last.merge!(:default => "false", :ruby_default => false)
+    expect(@parser.parse_table_schema(@schema).first.default).to eql(false)
+  end
   
   it "should contain whether the column can be :null" do
     expect(@parser.parse_table_schema(@schema).first.null).to eql(true)

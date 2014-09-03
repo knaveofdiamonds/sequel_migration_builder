@@ -56,6 +56,14 @@ describe "Sequel::Schema::AlterTableOperations#build_column_operations" do
     expect(ops.first).to eql("set_column_default :foo, 2")
   end
 
+  it "not have an operation for assumed boolean false" do
+    a = build_column(:name => :foo, :column_type => :boolean, :null => false, :default => nil)
+    b = build_column(:name => :foo, :column_type => :boolean, :null => false, :default => false)
+    ops = @subject.build_column_operations(a,b)
+
+    expect(ops).to be_empty
+  end
+
   it "should only return 1 operation if the default and other values are different" do
     a = build_column(:name => :foo, :column_type => :integer, :default => 1)
     b = build_column(:name => :foo, :column_type => :smallint, :default => 2)
