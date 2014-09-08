@@ -80,6 +80,7 @@ describe "Sequel::Schema::AlterTableOperations#build_column_operations" do
 
     expect(ops.first).to eql("set_column_type :foo, :enum, :default => nil, :elements => [\"A\", \"B\"]")
   end
+
 end
 
 describe "Sequel::Schema::AlterTableOperations.build" do
@@ -144,5 +145,42 @@ describe "Sequel::Schema::AlterTableOperations.build" do
 
     ops = Sequel::Schema::AlterTableOperations.build(table_a,table_b)
     expect(ops).to eql([])
+  end
+
+  context "with immutable_columns set" do
+    subject {
+      Sequel::Schema::AlterTableOperations.new(:immutable_columns => true)
+    }
+
+    it "doesn't change columns that are not different" do
+      table_a = {:name => :example_table,
+        :columns => [build_column(:name => :foo, :column_type => :integer)]}
+      table_b = {:name => :example_table,
+        :columns => [build_column(:name => :foo, :column_type => :integer)]}
+      ops = subject.build(table_a,table_b)
+      
+      expect(ops).to be_empty
+    end
+
+    it "drops and adds a column with immutable columns set" do
+      table_a = {:name => :example_table,
+        :columns => [build_column(:name => :foo, :column_type => :integer, :allow_null => true)]}
+      table_b = {:name => :example_table,
+        :columns => [build_column(:name => :foo, :column_type => :smallint, :allow_null => true)]}
+      ops = subject.build(table_a,table_b)
+      
+      expect(ops.size).to eql(2)
+      expect(ops.first).to match(/drop_column :foo/)
+      expect(ops.last).to match(/add_column :foo/)
+    end
+
+    it "adds an assumed default to NOT NULL columns when changed" do
+      table_a = {:name => :example_table,
+        :columns => [build_column(:name => :foo, :column_type => :integer, :allow_null => false)]}
+      table_b = {:name => :example_table,
+        :columns => [build_column(:name => :foo, :column_type => :boolean, :allow_null => false)]}
+      ops = subject.build(table_a,table_b)
+      expect(ops.last).to match(/:default => false/)
+    end
   end
 end

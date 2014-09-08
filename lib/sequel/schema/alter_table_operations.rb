@@ -52,16 +52,29 @@ module Sequel
         diffs = db_column.diff(new_column)
 
         if @immutable_columns && !diffs.empty?
-          result << :drop_statement
-          result << :add_statement
+          result << new_column.drop_statement
+          
+          statement = new_column.add_statement
+          result << (statement.include?(":default") ? statement : statement + ", :default => #{assumed_default(new_column)}")
+          result
         else
           result << :change_type_statement    if [:elements, :column_type, :size, :unsigned].any? {|sym| diffs.include?(sym) }
           # only need to explicitly set the default if we're not changing the column type.
           result << :change_default_statement if diffs.include?(:default) && result.empty?
           result << :change_null_statement    if diffs.include?(:null)
+
+          result.map {|statement| new_column.__send__(statement) }
         end
-        
-        result.map {|statement| new_column.__send__(statement) }
+      end
+
+      def assumed_default(column)
+        if column.numeric?
+          0
+        elsif column.column_type == :varchar || column.column_type == :char
+          ''
+        elsif column.column_type == :boolean
+          false
+        end
       end
     end
   end

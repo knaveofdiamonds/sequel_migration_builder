@@ -201,7 +201,7 @@ change do
   end
 
   alter_table :example_table do
-    add_column :foo, :integer, :null => false
+    add_column :foo, :integer, :null => false, :default => 0
   end
 end
 END
